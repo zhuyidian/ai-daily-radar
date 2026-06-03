@@ -33,6 +33,31 @@
     `-- daily-ai-radar.md
 ```
 
+## 版本管理
+
+项目使用 Git 管理源码，主分支为 `main`。
+
+建议提交范围：
+
+- 提交：`README.md`、`config/`、`scripts/`、`skills/`、`templates/` 等源码、配置和模板文件。
+- 不提交：`.runs/`、`.env*`、`*.log` 等运行产物、本地环境变量和日志文件。
+
+常用流程：
+
+```powershell
+git status
+git add README.md config scripts skills templates
+git commit -m "Describe the change"
+git push
+```
+
+发布稳定版本时，建议使用语义化版本标签：
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
 ## 飞书环境变量
 
 先在当前 PowerShell 会话里配置：
