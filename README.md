@@ -37,6 +37,8 @@
 
 项目使用 Git 管理源码，主分支为 `main`。
 
+当前版本：`V1.0.0`
+
 建议提交范围：
 
 - 提交：`README.md`、`config/`、`scripts/`、`skills/`、`templates/` 等源码、配置和模板文件。
@@ -54,8 +56,8 @@ git push
 发布稳定版本时，建议使用语义化版本标签：
 
 ```powershell
-git tag v0.1.0
-git push origin v0.1.0
+git tag V1.0.0
+git push origin V1.0.0
 ```
 
 ## 飞书环境变量
