@@ -37,7 +37,7 @@
 
 项目使用 Git 管理源码，主分支为 `main`。
 
-当前版本：`V1.0.0`
+当前版本：`V1.0.1`
 
 建议提交范围：
 
@@ -56,8 +56,8 @@ git push
 发布稳定版本时，建议使用语义化版本标签：
 
 ```powershell
-git tag V1.0.0
-git push origin V1.0.0
+git tag V1.0.1
+git push origin V1.0.1
 ```
 
 ## 飞书环境变量

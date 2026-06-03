@@ -137,6 +137,15 @@ function Get-MarkdownSummary {
     return $summary
 }
 
+function Write-RunResultJson {
+    param(
+        [string]$OutputPath,
+        [object]$Data
+    )
+
+    $Data | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
+}
+
 function Invoke-FeishuMultipartUpload {
     param(
         [string]$Uri,
@@ -267,6 +276,9 @@ function Import-MarkdownToFeishuDoc {
 }
 
 $resolvedMarkdownPath = Resolve-Path -LiteralPath $MarkdownPath
+$runDir = Split-Path -Parent $resolvedMarkdownPath
+$dryRunResultPath = Join-Path $runDir "feishu-dry-run.json"
+$sendResultPath = Join-Path $runDir "feishu-send-result.json"
 $content = Get-Content -LiteralPath $resolvedMarkdownPath -Raw -Encoding UTF8
 
 if ([string]::IsNullOrWhiteSpace($Title)) {
@@ -288,14 +300,17 @@ $baseUrl = $baseUrl.TrimEnd("/")
 $summary = Get-MarkdownSummary -Content $content
 
 if ($DryRun) {
-    [PSCustomObject]@{
+    $dryRunResult = [PSCustomObject]@{
         Mode = if ($TextOnly) { "text" } else { "docx" }
         Title = $Title
         MarkdownPath = $resolvedMarkdownPath.ToString()
         SummaryPreview = $summary
         WouldSend = $true
         BaseUrl = $baseUrl
-    } | ConvertTo-Json -Depth 4
+        GeneratedAt = ([DateTimeOffset]::Now).UtcDateTime.ToString("o")
+    }
+    Write-RunResultJson -OutputPath $dryRunResultPath -Data $dryRunResult
+    $dryRunResult | ConvertTo-Json -Depth 4
     return
 }
 
@@ -311,11 +326,15 @@ $token = New-FeishuAccessToken -BaseUrl $baseUrl -AppId $appId -AppSecret $appSe
 
 if ($TextOnly) {
     Send-FeishuText -BaseUrl $baseUrl -Token $token -ChatId $chatId -Text $summary
-    [PSCustomObject]@{
+    $textResult = [PSCustomObject]@{
         Mode = "text"
         Title = $Title
+        MarkdownPath = $resolvedMarkdownPath.ToString()
         Sent = $true
-    } | ConvertTo-Json -Depth 4
+        SentAt = ([DateTimeOffset]::Now).UtcDateTime.ToString("o")
+    }
+    Write-RunResultJson -OutputPath $sendResultPath -Data $textResult
+    $textResult | ConvertTo-Json -Depth 4
     return
 }
 
@@ -343,10 +362,14 @@ $message = @(
 
 Send-FeishuText -BaseUrl $baseUrl -Token $token -ChatId $chatId -Text $message
 
-[PSCustomObject]@{
+$sendResult = [PSCustomObject]@{
     Mode = "docx"
     Title = $Title
+    MarkdownPath = $resolvedMarkdownPath.ToString()
     Url = $doc.Url
     Token = $doc.Token
     Sent = $true
-} | ConvertTo-Json -Depth 4
+    SentAt = ([DateTimeOffset]::Now).UtcDateTime.ToString("o")
+}
+Write-RunResultJson -OutputPath $sendResultPath -Data $sendResult
+$sendResult | ConvertTo-Json -Depth 4
