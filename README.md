@@ -35,30 +35,9 @@
 
 ## 版本管理
 
-项目使用 Git 管理源码，主分支为 `main`。
-
 当前版本：`V1.0.1`
 
-建议提交范围：
-
-- 提交：`README.md`、`config/`、`scripts/`、`skills/`、`templates/` 等源码、配置和模板文件。
-- 不提交：`.runs/`、`.env*`、`*.log` 等运行产物、本地环境变量和日志文件。
-
-常用流程：
-
-```powershell
-git status
-git add README.md config scripts skills templates
-git commit -m "Describe the change"
-git push
-```
-
-发布稳定版本时，建议使用语义化版本标签：
-
-```powershell
-git tag V1.0.1
-git push origin V1.0.1
-```
+版本说明：发送飞书日报后会在运行目录写入发送结果 JSON，便于自动任务追踪 dry run 和正式发送状态。
 
 ## 飞书环境变量
 
