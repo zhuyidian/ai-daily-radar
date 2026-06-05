@@ -14,7 +14,7 @@ Use this skill to turn raw AI news into a useful Chinese daily briefing. The ski
    - If running on Monday morning, include meaningful weekend items.
    - Use absolute dates in the final report.
 2. Gather candidates from official, developer, market, and China-facing sources.
-   - Use `config/sources.json` when present.
+   - Use `config/topics/ai/sources.json` when present.
    - If `candidates.json` or `generate-prompt.md` is present in the run directory, treat it as the starting candidate pool.
    - Search beyond the list only when a story is clearly important or sources are sparse.
 3. Verify and deduplicate.
@@ -23,7 +23,7 @@ Use this skill to turn raw AI news into a useful Chinese daily briefing. The ski
    - Merge duplicate coverage into one item and keep the strongest original link.
 4. Score each candidate.
 5. Keep 5-8 top items and 3-8 one-line briefs.
-6. Write `daily-ai-radar.md` and `daily-ai-radar.json` in the requested run directory.
+6. Write the requested Markdown and JSON files in the run directory.
 7. If Feishu delivery is requested, send the Markdown through the project script.
 
 ## Priority Sources
@@ -149,7 +149,7 @@ Also produce a machine-readable JSON file:
 When the project contains `scripts/Send-FeishuDailyRadar.ps1`, use it after writing the Markdown:
 
 ```powershell
-.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\daily-ai-radar\YYYY-MM-DD\daily-ai-radar.md
+.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.md
 ```
 
 Use `-TextOnly` only when the user does not want a cloud document or when import permissions are unavailable.

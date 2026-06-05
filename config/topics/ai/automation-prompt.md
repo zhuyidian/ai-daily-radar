@@ -11,12 +11,12 @@
    `.\scripts\Collect-NewsCandidates.ps1 -Topic ai -LookbackHours 24`
 7. 运行生成提示脚本：
    `.\scripts\Generate-DailyRadar.ps1 -Topic ai`
-8. 读取 `.runs\daily-ai-radar\YYYY-MM-DD\generate-prompt.md`，结合候选新闻继续搜索核验，不要只依赖候选列表。
+8. 读取 `.runs\ai-daily-radar\YYYY-MM-DD\generate-prompt.md`，结合候选新闻继续搜索核验，不要只依赖候选列表。
 9. 生成中文 Markdown 日报和 JSON 数据文件：
-   - `.runs\daily-ai-radar\YYYY-MM-DD\daily-ai-radar.md`
-   - `.runs\daily-ai-radar\YYYY-MM-DD\daily-ai-radar.json`
+   - `.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.md`
+   - `.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.json`
 10. Markdown 写完后运行：
-   `.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\daily-ai-radar\YYYY-MM-DD\daily-ai-radar.md`
+   `.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.md`
 
 写作标准：
 

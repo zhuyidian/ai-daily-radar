@@ -1,40 +1,31 @@
-# AI 行业日报 | {{date}}
+# AI 行业日报 | YYYY-MM-DD
 
-> 覆盖时间：{{window_start}} - {{window_end}}
+> 覆盖时间：YYYY-MM-DD HH:mm - YYYY-MM-DD HH:mm
 
 ## 今日最值得关注
 
-### 1. {{title}}
-
-- 发生了什么：{{what_happened}}
-- 为什么重要：{{why_it_matters}}
-- 影响谁：{{who_is_affected}}
-- 推荐关注指数：{{score}}/10
-- 可信度：{{confidence}}
-- 原文链接：{{source_url}}
-
-### 2. {{title}}
+### 1. 标题
 
 - 发生了什么：
 - 为什么重要：
 - 影响谁：
 - 推荐关注指数：/10
-- 可信度：
+- 可信度：高/中/低
 - 原文链接：
 
 ## 一句话快讯
 
-- {{brief_item}}
+- ...
 
 ## 今日观察
 
-{{editorial_note}}
+一小段编辑判断：今天的共同趋势、风险或机会。
 
 ## 值得继续跟踪
 
-- {{watch_item}}
+- ...
 
-## JSON 输出建议
+## JSON 输出结构
 
 ```json
 {
@@ -56,13 +47,7 @@
       "published_at": "YYYY-MM-DD"
     }
   ],
-  "briefs": [
-    {
-      "title": "",
-      "source_url": "",
-      "published_at": "YYYY-MM-DD"
-    }
-  ],
+  "briefs": [],
   "watchlist": []
 }
 ```

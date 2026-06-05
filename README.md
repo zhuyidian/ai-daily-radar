@@ -31,20 +31,15 @@
 |   |       |-- collection-feeds.json
 |   |       |-- sources.json
 |   |       `-- automation-prompt.md
-|   |-- collection-feeds.json
-|   |-- sources.json
-|   `-- automation-prompt.md
 |-- scripts/
 |   |-- Run-DailyRadar.ps1
 |   |-- Run-AiDailyRadar.ps1
 |   |-- Run-AndroidDailyRadar.ps1
 |   |-- Collect-NewsCandidates.ps1
+|   |-- Collect-RssNewsCandidates.ps1
 |   |-- Generate-DailyRadar.ps1
 |   |-- Invoke-DailyRadar.ps1
 |   |-- Get-DailyRadarTopic.ps1
-|   |-- Collect-AiNewsCandidates.ps1
-|   |-- Generate-AiDailyRadar.ps1
-|   |-- Invoke-AiDailyRadar.ps1
 |   `-- Send-FeishuDailyRadar.ps1
 |-- skills/
 |   |-- ai-daily-industry-radar/
@@ -52,15 +47,15 @@
 |   `-- android-daily-developer-radar/
 |       `-- SKILL.md
 `-- templates/
-    |-- daily-ai-radar.md
+    |-- ai-daily-radar.md
     `-- android-daily-radar.md
 ```
 
 ## 版本管理
 
-当前版本：`V1.1.0`
+当前版本：`V1.1.1`
 
-版本说明：升级为多主题日报框架，保留 AI 日报，并新增 Android 开发日报主题。
+版本说明：统一多主题输出命名，移除旧 AI-only 配置和脚本。
 
 ## 飞书环境变量
 
@@ -106,7 +101,7 @@ $env:FEISHU_OPEN_API_BASE = "https://open.feishu.cn"
 输出目录：
 
 ```text
-.runs\daily-ai-radar\YYYY-MM-DD\
+.runs\ai-daily-radar\YYYY-MM-DD\
 ```
 
 ### Android 开发日报
@@ -146,7 +141,7 @@ $env:FEISHU_OPEN_API_BASE = "https://open.feishu.cn"
 生成 Markdown 后，再发送飞书：
 
 ```powershell
-.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\daily-ai-radar\YYYY-MM-DD\daily-ai-radar.md
+.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.md
 ```
 
 Android 日报对应：
@@ -184,13 +179,11 @@ Android 日报对应：
 .\scripts\Generate-DailyRadar.ps1 -Topic android
 ```
 
-兼容脚本仍保留：
+便捷入口仍保留：
 
 ```powershell
 .\scripts\Run-AiDailyRadar.ps1
-.\scripts\Invoke-AiDailyRadar.ps1
-.\scripts\Generate-AiDailyRadar.ps1
-.\scripts\Collect-AiNewsCandidates.ps1
+.\scripts\Run-AndroidDailyRadar.ps1
 ```
 
 ## Codex 自动任务建议
@@ -220,12 +213,12 @@ Android 日报：
 
 AI：
 
-- Markdown：`.runs/daily-ai-radar/YYYY-MM-DD/daily-ai-radar.md`
-- JSON：`.runs/daily-ai-radar/YYYY-MM-DD/daily-ai-radar.json`
-- 候选新闻：`.runs/daily-ai-radar/YYYY-MM-DD/candidates.json`
-- 生成提示：`.runs/daily-ai-radar/YYYY-MM-DD/generate-prompt.md`
-- 运行提示：`.runs/daily-ai-radar/YYYY-MM-DD/run-prompt.md`
-- 运行元数据：`.runs/daily-ai-radar/YYYY-MM-DD/run-metadata.json`
+- Markdown：`.runs/ai-daily-radar/YYYY-MM-DD/ai-daily-radar.md`
+- JSON：`.runs/ai-daily-radar/YYYY-MM-DD/ai-daily-radar.json`
+- 候选新闻：`.runs/ai-daily-radar/YYYY-MM-DD/candidates.json`
+- 生成提示：`.runs/ai-daily-radar/YYYY-MM-DD/generate-prompt.md`
+- 运行提示：`.runs/ai-daily-radar/YYYY-MM-DD/run-prompt.md`
+- 运行元数据：`.runs/ai-daily-radar/YYYY-MM-DD/run-metadata.json`
 
 Android：
 

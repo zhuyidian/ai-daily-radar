@@ -28,4 +28,4 @@ if ($NoGoogleNews) {
     $collectArgs.NoGoogleNews = $true
 }
 
-& (Join-Path $PSScriptRoot "Collect-AiNewsCandidates.ps1") @collectArgs
+& (Join-Path $PSScriptRoot "Collect-RssNewsCandidates.ps1") @collectArgs

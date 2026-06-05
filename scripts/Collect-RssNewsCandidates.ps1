@@ -1,14 +1,22 @@
 param(
     [DateTime]$Date = (Get-Date),
     [int]$LookbackHours = 24,
-    [string]$OutputRoot = ".runs\daily-ai-radar",
-    [string]$ConfigPath = "config\collection-feeds.json",
+    [string]$OutputRoot,
+    [string]$ConfigPath,
     [int]$MaxItemsPerSource = 20,
     [switch]$NoGoogleNews
 )
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
+    throw "OutputRoot is required."
+}
+
+if ([string]::IsNullOrWhiteSpace($ConfigPath)) {
+    throw "ConfigPath is required."
+}
 
 function Get-TextValue {
     param($Value)
@@ -91,7 +99,7 @@ function Invoke-RssFetch {
 
     $items = New-Object System.Collections.Generic.List[object]
     $headers = @{
-        "User-Agent" = "ai-daily-radar/0.1"
+        "User-Agent" = "daily-radar/0.2"
     }
 
     try {
