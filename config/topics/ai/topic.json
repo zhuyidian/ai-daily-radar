@@ -1,0 +1,37 @@
+{
+  "id": "ai",
+  "name": "AI 行业日报",
+  "run_name": "daily-ai-radar",
+  "report_title": "AI 行业日报",
+  "prompt_title": "Generate AI Daily Radar",
+  "skill_path": "skills/ai-daily-industry-radar/SKILL.md",
+  "template_path": "templates/daily-ai-radar.md",
+  "sources_path": "config/topics/ai/sources.json",
+  "collection_config_path": "config/topics/ai/collection-feeds.json",
+  "automation_prompt_path": "config/topics/ai/automation-prompt.md",
+  "output_markdown_name": "daily-ai-radar.md",
+  "output_json_name": "daily-ai-radar.json",
+  "default_lookback_hours": 24,
+  "default_max_items_per_source": 20,
+  "default_top_candidate_count": 30,
+  "focus_areas": [
+    "模型发布",
+    "AI Agent",
+    "AI 编程",
+    "视频/图像/多模态",
+    "AI 基础设施",
+    "产业融资并购",
+    "监管政策",
+    "中国用户和开发者影响"
+  ],
+  "report_requirements": [
+    "Do not copy candidates.json directly into the report.",
+    "Deduplicate stories about the same event.",
+    "Prefer official sources, project pages, release notes, papers, GitHub repositories, regulator pages, or primary company blogs.",
+    "Treat Google News RSS items as discovery leads, not final sources.",
+    "If a candidate is from media/search only, verify it with a primary source or downgrade it to a brief/watchlist item.",
+    "Use absolute dates. Do not write relative dates like today, yesterday, or tomorrow.",
+    "Keep 5-8 top items and 3-8 one-line briefs.",
+    "Do not send to Feishu."
+  ]
+}

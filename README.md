@@ -1,14 +1,17 @@
-# AI Daily Radar
+# Daily Radar
 
-每天抓取、筛选并生成 AI 行业中文日报，然后推送到飞书群。
+每天抓取、筛选并生成中文主题日报，然后推送到飞书群。
 
-这个项目把流程拆成三层：
+当前已支持：
 
-- `skills/ai-daily-industry-radar/`：固化选题口味、评分规则和日报格式。
-- `scripts/Collect-AiNewsCandidates.ps1`：从 RSS/Google News RSS 拉取候选新闻，输出 `candidates.json`。
-- `scripts/Generate-AiDailyRadar.ps1`：读取候选池并生成正式的 `generate-prompt.md`，供 Codex 写日报。
-- `scripts/Invoke-AiDailyRadar.ps1`：创建当天运行目录，并生成给 Codex 自动任务使用的工作提示。
-- `scripts/Run-AiDailyRadar.ps1`：总入口，串起初始化、采集、生成 prompt，以及可选飞书 dry run/发送。
+- AI 行业日报
+- Android 开发日报
+
+项目的核心设计是“同一套脚本，不同主题配置”：
+
+- `config/topics/<topic>/`：每个主题的抓取源、参考源、自动任务 prompt 和主题元信息。
+- `skills/<topic-skill>/`：每个主题的筛选、评分和写作口径。
+- `scripts/Run-DailyRadar.ps1`：多主题通用入口。
 - `scripts/Send-FeishuDailyRadar.ps1`：把本地 Markdown 日报导入飞书云文档，并把摘要和链接发到群。
 
 ## 目录
@@ -17,27 +20,47 @@
 .
 |-- README.md
 |-- config/
-|   |-- sources.json
+|   |-- topics/
+|   |   |-- ai/
+|   |   |   |-- topic.json
+|   |   |   |-- collection-feeds.json
+|   |   |   |-- sources.json
+|   |   |   `-- automation-prompt.md
+|   |   `-- android/
+|   |       |-- topic.json
+|   |       |-- collection-feeds.json
+|   |       |-- sources.json
+|   |       `-- automation-prompt.md
 |   |-- collection-feeds.json
+|   |-- sources.json
 |   `-- automation-prompt.md
 |-- scripts/
+|   |-- Run-DailyRadar.ps1
+|   |-- Run-AiDailyRadar.ps1
+|   |-- Run-AndroidDailyRadar.ps1
+|   |-- Collect-NewsCandidates.ps1
+|   |-- Generate-DailyRadar.ps1
+|   |-- Invoke-DailyRadar.ps1
+|   |-- Get-DailyRadarTopic.ps1
 |   |-- Collect-AiNewsCandidates.ps1
 |   |-- Generate-AiDailyRadar.ps1
 |   |-- Invoke-AiDailyRadar.ps1
-|   |-- Run-AiDailyRadar.ps1
 |   `-- Send-FeishuDailyRadar.ps1
 |-- skills/
-|   `-- ai-daily-industry-radar/
+|   |-- ai-daily-industry-radar/
+|   |   `-- SKILL.md
+|   `-- android-daily-developer-radar/
 |       `-- SKILL.md
 `-- templates/
-    `-- daily-ai-radar.md
+    |-- daily-ai-radar.md
+    `-- android-daily-radar.md
 ```
 
 ## 版本管理
 
-当前版本：`V1.0.1`
+当前版本：`V1.1.0`
 
-版本说明：发送飞书日报后会在运行目录写入发送结果 JSON，便于自动任务追踪 dry run 和正式发送状态。
+版本说明：升级为多主题日报框架，保留 AI 日报，并新增 Android 开发日报主题。
 
 ## 飞书环境变量
 
@@ -66,99 +89,136 @@ $env:FEISHU_OPEN_API_BASE = "https://open.feishu.cn"
 
 ## 手动运行
 
-推荐先用一键启动脚本：
+### AI 行业日报
+
+旧命令仍然可用：
 
 ```powershell
-.\scripts\Run-AiDailyRadar.ps1 -LookbackHours 24
+.\scripts\Run-AiDailyRadar.ps1 -LookbackHours 24 -MaxItemsPerSource 10
 ```
 
-它会完成：
+等价的通用命令：
+
+```powershell
+.\scripts\Run-DailyRadar.ps1 -Topic ai -LookbackHours 24 -MaxItemsPerSource 10
+```
+
+输出目录：
+
+```text
+.runs\daily-ai-radar\YYYY-MM-DD\
+```
+
+### Android 开发日报
+
+推荐命令：
+
+```powershell
+.\scripts\Run-AndroidDailyRadar.ps1 -LookbackHours 24 -MaxItemsPerSource 10
+```
+
+等价的通用命令：
+
+```powershell
+.\scripts\Run-DailyRadar.ps1 -Topic android -LookbackHours 24 -MaxItemsPerSource 10
+```
+
+输出目录：
+
+```text
+.runs\android-daily-radar\YYYY-MM-DD\
+```
+
+## 工作流
+
+一键启动脚本会完成：
 
 ```text
 初始化运行目录 -> 采集候选新闻 -> 生成 generate-prompt.md -> 写 run-metadata.json
 ```
 
-接着对 Codex 说：
+然后对 Codex 说：
 
 ```text
 读取今天的 generate-prompt.md，生成日报，但先不要发飞书
 ```
 
-如果想分步执行，也可以按下面流程。
-
-先生成当天运行目录和任务提示：
+生成 Markdown 后，再发送飞书：
 
 ```powershell
-.\scripts\Invoke-AiDailyRadar.ps1
+.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\daily-ai-radar\YYYY-MM-DD\daily-ai-radar.md
 ```
 
-它会创建类似：
-
-```text
-.runs\daily-ai-radar\2026-06-02\
-|-- daily-ai-radar.md
-|-- daily-ai-radar.json
-|-- run-prompt.md
-`-- sources.json
-```
-
-采集候选新闻：
+Android 日报对应：
 
 ```powershell
-.\scripts\Collect-AiNewsCandidates.ps1 -LookbackHours 48
-```
-
-它会生成：
-
-```text
-.runs\daily-ai-radar\YYYY-MM-DD\candidates.json
-```
-
-然后让 Codex 结合 `candidates.json`、`run-prompt.md` 和 `skills/ai-daily-industry-radar/SKILL.md` 生成日报。
-
-生成正式写作 prompt：
-
-```powershell
-.\scripts\Generate-AiDailyRadar.ps1
-```
-
-它会生成：
-
-```text
-.runs\daily-ai-radar\YYYY-MM-DD\generate-prompt.md
-```
-
-让 Codex 按 `run-prompt.md` 的要求完成搜索、筛选、写作后，再发送飞书：
-
-```powershell
-.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\daily-ai-radar\2026-06-02\daily-ai-radar.md
+.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\android-daily-radar\YYYY-MM-DD\android-daily-radar.md
 ```
 
 只发纯文本摘要，不导入云文档：
 
 ```powershell
-.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\daily-ai-radar\2026-06-02\daily-ai-radar.md -TextOnly
+.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath <markdown-path> -TextOnly
+```
+
+## 分步执行
+
+初始化运行目录：
+
+```powershell
+.\scripts\Invoke-DailyRadar.ps1 -Topic ai
+.\scripts\Invoke-DailyRadar.ps1 -Topic android
+```
+
+采集候选新闻：
+
+```powershell
+.\scripts\Collect-NewsCandidates.ps1 -Topic ai -LookbackHours 24
+.\scripts\Collect-NewsCandidates.ps1 -Topic android -LookbackHours 24
+```
+
+生成正式写作 prompt：
+
+```powershell
+.\scripts\Generate-DailyRadar.ps1 -Topic ai
+.\scripts\Generate-DailyRadar.ps1 -Topic android
+```
+
+兼容脚本仍保留：
+
+```powershell
+.\scripts\Run-AiDailyRadar.ps1
+.\scripts\Invoke-AiDailyRadar.ps1
+.\scripts\Generate-AiDailyRadar.ps1
+.\scripts\Collect-AiNewsCandidates.ps1
 ```
 
 ## Codex 自动任务建议
 
-建议创建一个每天早上运行的 cron automation，工作目录指向本项目，prompt 使用 `config/automation-prompt.md`。
+建议每个主题建一个独立自动任务。
 
-推荐执行时间：
+AI 日报：
 
-- 中国时间每天 `08:30`
-- 覆盖过去 `24` 小时
-- 如果当天信息较少，也保留高置信的一句话快讯，避免硬凑 Top 5
+```powershell
+.\scripts\Run-DailyRadar.ps1 -Topic ai -LookbackHours 24 -MaxItemsPerSource 10
+```
+
+Android 日报：
+
+```powershell
+.\scripts\Run-DailyRadar.ps1 -Topic android -LookbackHours 24 -MaxItemsPerSource 10
+```
 
 自动任务要点：
 
-1. 使用 `skills/ai-daily-industry-radar/SKILL.md` 的筛选和输出规则。
-2. 必须核验信息发布时间，优先官方来源、产品博客、论文、GitHub Release、可信媒体。
-3. 先运行 `scripts/Collect-AiNewsCandidates.ps1` 生成候选新闻。
-4. 结合候选新闻继续搜索核验，生成 Markdown 和 JSON 两份结果。
-5. 运行 `scripts/Send-FeishuDailyRadar.ps1` 推送飞书。
+1. 先运行对应主题的 `Run-DailyRadar.ps1`。
+2. 读取当天生成的 `generate-prompt.md`。
+3. 按对应主题 skill 继续核验、筛选、写 Markdown 和 JSON。
+4. 再运行 `Send-FeishuDailyRadar.ps1` 推送飞书。
 
 ## 输出文件约定
+
+AI：
 
 - Markdown：`.runs/daily-ai-radar/YYYY-MM-DD/daily-ai-radar.md`
 - JSON：`.runs/daily-ai-radar/YYYY-MM-DD/daily-ai-radar.json`
@@ -167,4 +227,34 @@ $env:FEISHU_OPEN_API_BASE = "https://open.feishu.cn"
 - 运行提示：`.runs/daily-ai-radar/YYYY-MM-DD/run-prompt.md`
 - 运行元数据：`.runs/daily-ai-radar/YYYY-MM-DD/run-metadata.json`
 
-JSON 建议结构见 `templates/daily-ai-radar.md` 末尾说明。
+Android：
+
+- Markdown：`.runs/android-daily-radar/YYYY-MM-DD/android-daily-radar.md`
+- JSON：`.runs/android-daily-radar/YYYY-MM-DD/android-daily-radar.json`
+- 候选新闻：`.runs/android-daily-radar/YYYY-MM-DD/candidates.json`
+- 生成提示：`.runs/android-daily-radar/YYYY-MM-DD/generate-prompt.md`
+- 运行提示：`.runs/android-daily-radar/YYYY-MM-DD/run-prompt.md`
+- 运行元数据：`.runs/android-daily-radar/YYYY-MM-DD/run-metadata.json`
+
+## 新增主题
+
+新增主题时，按下面结构添加：
+
+```text
+config/topics/<topic>/
+|-- topic.json
+|-- collection-feeds.json
+|-- sources.json
+`-- automation-prompt.md
+
+skills/<topic-skill>/
+`-- SKILL.md
+
+templates/<topic-template>.md
+```
+
+然后运行：
+
+```powershell
+.\scripts\Run-DailyRadar.ps1 -Topic <topic>
+```

@@ -1,0 +1,92 @@
+{
+  "official_sources": [
+    {
+      "name": "Android Developers Blog",
+      "url": "https://android-developers.googleblog.com/",
+      "priority": 10,
+      "topics": ["android", "official", "developer"]
+    },
+    {
+      "name": "Android Studio Release Notes",
+      "url": "https://developer.android.com/studio/releases",
+      "priority": 10,
+      "topics": ["android-studio", "tooling"]
+    },
+    {
+      "name": "Android Gradle Plugin Release Notes",
+      "url": "https://developer.android.com/build/releases/gradle-plugin",
+      "priority": 10,
+      "topics": ["agp", "gradle", "build"]
+    },
+    {
+      "name": "Jetpack Release Notes",
+      "url": "https://developer.android.com/jetpack/androidx/versions/all-channel",
+      "priority": 9,
+      "topics": ["jetpack", "androidx", "libraries"]
+    },
+    {
+      "name": "Compose Release Notes",
+      "url": "https://developer.android.com/jetpack/androidx/releases/compose",
+      "priority": 9,
+      "topics": ["compose", "ui"]
+    },
+    {
+      "name": "Google Play Policy Updates",
+      "url": "https://support.google.com/googleplay/android-developer/answer/9934569",
+      "priority": 9,
+      "topics": ["google-play", "policy"]
+    },
+    {
+      "name": "Android Security Bulletins",
+      "url": "https://source.android.com/docs/security/bulletin",
+      "priority": 9,
+      "topics": ["security", "aosp"]
+    },
+    {
+      "name": "Kotlin Blog",
+      "url": "https://blog.jetbrains.com/kotlin/",
+      "priority": 9,
+      "topics": ["kotlin", "language"]
+    },
+    {
+      "name": "Gradle Blog",
+      "url": "https://blog.gradle.org/",
+      "priority": 8,
+      "topics": ["gradle", "build"]
+    }
+  ],
+  "developer_sources": [
+    {
+      "name": "GitHub Trending Kotlin",
+      "url": "https://github.com/trending/kotlin?since=daily",
+      "priority": 7,
+      "topics": ["kotlin", "open-source"]
+    },
+    {
+      "name": "GitHub Trending Android",
+      "url": "https://github.com/topics/android",
+      "priority": 6,
+      "topics": ["android", "open-source"]
+    },
+    {
+      "name": "Firebase Blog",
+      "url": "https://firebase.blog/",
+      "priority": 6,
+      "topics": ["firebase", "mobile"]
+    }
+  ],
+  "china_sources": [
+    {
+      "name": "掘金 Android",
+      "url": "https://juejin.cn/tag/Android",
+      "priority": 6,
+      "topics": ["china", "android", "developer"]
+    },
+    {
+      "name": "InfoQ Android",
+      "url": "https://www.infoq.cn/topic/Android",
+      "priority": 6,
+      "topics": ["china", "android", "industry"]
+    }
+  ]
+}

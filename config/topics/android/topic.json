@@ -1,0 +1,40 @@
+{
+  "id": "android",
+  "name": "Android 开发日报",
+  "run_name": "android-daily-radar",
+  "report_title": "Android 开发日报",
+  "prompt_title": "Generate Android Daily Radar",
+  "skill_path": "skills/android-daily-developer-radar/SKILL.md",
+  "template_path": "templates/android-daily-radar.md",
+  "sources_path": "config/topics/android/sources.json",
+  "collection_config_path": "config/topics/android/collection-feeds.json",
+  "automation_prompt_path": "config/topics/android/automation-prompt.md",
+  "output_markdown_name": "android-daily-radar.md",
+  "output_json_name": "android-daily-radar.json",
+  "default_lookback_hours": 24,
+  "default_max_items_per_source": 20,
+  "default_top_candidate_count": 30,
+  "focus_areas": [
+    "Android 平台更新",
+    "Android Studio",
+    "Android Gradle Plugin",
+    "Kotlin",
+    "Jetpack",
+    "Compose",
+    "Google Play 政策",
+    "AOSP 和安全公告",
+    "兼容性和性能",
+    "重要开源库"
+  ],
+  "report_requirements": [
+    "Do not copy candidates.json directly into the report.",
+    "Deduplicate stories about the same release, policy, library, or issue.",
+    "Prefer official docs, release notes, changelogs, GitHub releases, AOSP pages, security bulletins, or primary project blogs.",
+    "Treat Google News RSS items as discovery leads, not final sources.",
+    "If a candidate is from media/search only, verify it with a primary source or downgrade it to a brief/watchlist item.",
+    "Use absolute dates. Do not write relative dates like today, yesterday, or tomorrow.",
+    "Keep 5-8 top items and 3-8 one-line briefs when enough high-signal items exist.",
+    "For tool/library updates, state whether developers should upgrade now, wait, or only monitor.",
+    "Do not send to Feishu."
+  ]
+}

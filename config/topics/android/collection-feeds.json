@@ -1,0 +1,97 @@
+{
+  "direct_feeds": [
+    {
+      "name": "Android Developers Blog",
+      "feed_url": "https://android-developers.googleblog.com/feeds/posts/default",
+      "priority": 10,
+      "topics": ["android", "official", "platform", "developer"]
+    },
+    {
+      "name": "Google Developers Blog",
+      "feed_url": "https://developers.googleblog.com/feeds/posts/default",
+      "priority": 7,
+      "topics": ["google", "developer", "platform"]
+    },
+    {
+      "name": "Kotlin Blog",
+      "feed_url": "https://blog.jetbrains.com/kotlin/feed/",
+      "priority": 9,
+      "topics": ["kotlin", "language", "tooling"]
+    },
+    {
+      "name": "Gradle Blog",
+      "feed_url": "https://blog.gradle.org/feed.atom",
+      "priority": 8,
+      "topics": ["gradle", "build", "tooling"]
+    }
+  ],
+  "google_news_queries": [
+    {
+      "name": "Android platform updates",
+      "query": "(Android OR AOSP) (release OR update OR beta OR security bulletin OR compatibility)",
+      "priority": 9,
+      "topics": ["android", "platform", "security"]
+    },
+    {
+      "name": "Android developer tools",
+      "query": "(Android Studio OR Android Gradle Plugin OR AGP OR Jetpack Compose) (release OR update OR stable OR beta)",
+      "priority": 9,
+      "topics": ["tooling", "compose", "gradle"]
+    },
+    {
+      "name": "Kotlin Android",
+      "query": "(Kotlin OR KSP OR kotlinx OR coroutines) (Android OR Compose) (release OR update)",
+      "priority": 8,
+      "topics": ["kotlin", "android", "libraries"]
+    },
+    {
+      "name": "Google Play policy",
+      "query": "(Google Play OR Play Console) (policy OR requirement OR deadline OR Android app)",
+      "priority": 8,
+      "topics": ["google-play", "policy", "publishing"]
+    },
+    {
+      "name": "Android open source libraries",
+      "query": "(Android Jetpack OR AndroidX OR Jetpack Compose OR Kotlin Android) (GitHub release OR changelog OR release notes OR stable)",
+      "priority": 6,
+      "topics": ["open-source", "libraries"]
+    },
+    {
+      "name": "Android China ecosystem",
+      "query": "(Android 开发 OR 安卓 OR Kotlin OR Compose OR Google Play) (发布 OR 更新 OR 政策 OR 兼容)",
+      "priority": 6,
+      "topics": ["china", "android", "developer"]
+    }
+  ],
+  "keywords": [
+    "Android",
+    "AOSP",
+    "Android Studio",
+    "Android Gradle Plugin",
+    "AGP",
+    "Gradle",
+    "Kotlin",
+    "KSP",
+    "Jetpack",
+    "Compose",
+    "Room",
+    "WorkManager",
+    "Navigation",
+    "Lifecycle",
+    "Firebase",
+    "Google Play",
+    "Play Console",
+    "security bulletin",
+    "compatibility",
+    "release notes",
+    "stable",
+    "beta",
+    "RC",
+    "GitHub",
+    "安卓",
+    "开发者",
+    "兼容",
+    "上架",
+    "政策"
+  ]
+}

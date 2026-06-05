@@ -14,7 +14,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $runArgs = @{
-    Topic = "ai"
+    Topic = "android"
     Date = $Date
     LookbackHours = $LookbackHours
     MaxItemsPerSource = $MaxItemsPerSource

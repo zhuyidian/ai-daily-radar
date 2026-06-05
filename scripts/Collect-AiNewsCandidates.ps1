@@ -96,7 +96,7 @@ function Invoke-RssFetch {
 
     try {
         $response = Invoke-WebRequest -Uri $FeedUrl -Headers $headers -UseBasicParsing -TimeoutSec 25
-        [xml]$xml = $response.Content
+        [xml]$xml = ([string]$response.Content).TrimStart()
     }
     catch {
         return [PSCustomObject]@{
