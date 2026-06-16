@@ -9,10 +9,21 @@ param(
     [switch]$SkipGenerate,
     [switch]$DryRunFeishu,
     [switch]$SendFeishu,
-    [switch]$TextOnly
+    [switch]$TextOnly,
+    [string]$ConfigPath = "",
+    [switch]$CreateWeChatDraft,
+    [switch]$DryRunWeChat,
+    [string]$WeChatArticlePath = "",
+    [string]$WeChatCoverPath = "",
+    [string]$WeChatAccount = "",
+    [string]$WeChatTheme = "",
+    [string]$WeChatColor = ""
 )
 
 $ErrorActionPreference = "Stop"
+
+$scriptsRoot = Split-Path -Parent $PSScriptRoot
+$channelsRoot = Join-Path $scriptsRoot "channels"
 
 $topicConfig = & (Join-Path $PSScriptRoot "Get-DailyRadarTopic.ps1") -Topic $Topic
 if ($LookbackHours -le 0) {
@@ -57,11 +68,12 @@ $markdownPath = [string]$init.MarkdownPath
 $jsonPath = [string]$init.JsonPath
 $promptPath = [string]$init.PromptPath
 $runDir = [string]$init.RunDir
-$candidatesPath = Join-Path $runDir "candidates.json"
+$commonDir = if ($init.CommonDir) { [string]$init.CommonDir } else { Join-Path $runDir "common" }
+$candidatesPath = Join-Path $commonDir "candidates.json"
 $collect = $null
 $generate = $null
-$generatePromptPath = Join-Path $runDir "generate-prompt.md"
-$legacyNextPromptPath = Join-Path $runDir "next-codex-prompt.md"
+$generatePromptPath = Join-Path $commonDir "generate-prompt.md"
+$legacyNextPromptPath = Join-Path $commonDir "next-codex-prompt.md"
 
 if (Test-Path -LiteralPath $legacyNextPromptPath) {
     Remove-Item -LiteralPath $legacyNextPromptPath -Force
@@ -88,6 +100,9 @@ if ($DryRunFeishu -or $SendFeishu) {
     $sendArgs = @{
         MarkdownPath = $markdownPath
     }
+    if (-not [string]::IsNullOrWhiteSpace($ConfigPath)) {
+        $sendArgs.ConfigPath = $ConfigPath
+    }
     if ($TextOnly) {
         $sendArgs.TextOnly = $true
     }
@@ -95,7 +110,41 @@ if ($DryRunFeishu -or $SendFeishu) {
         $sendArgs.DryRun = $true
     }
 
-    $feishuResult = & (Join-Path $PSScriptRoot "Send-FeishuDailyRadar.ps1") @sendArgs
+    $feishuResult = & (Join-Path $channelsRoot "Send-FeishuDailyRadar.ps1") @sendArgs
+}
+
+$wechatResult = $null
+if ($CreateWeChatDraft -or $DryRunWeChat) {
+    if ([string]::IsNullOrWhiteSpace($WeChatArticlePath)) {
+        $WeChatArticlePath = Join-Path (Join-Path (Join-Path $runDir "channels") "wechat") "wechat-article.md"
+    }
+    if (-not (Test-Path -LiteralPath $WeChatArticlePath)) {
+        throw "WeChat article file does not exist: $WeChatArticlePath. Run scripts/channels/New-WeChatDailyRadarPrompt.ps1, generate wechat-article.md, and create images first."
+    }
+
+    $wechatSendArgs = @{
+        MarkdownPath = $WeChatArticlePath
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ConfigPath)) {
+        $wechatSendArgs.ConfigPath = $ConfigPath
+    }
+    if (-not [string]::IsNullOrWhiteSpace($WeChatCoverPath)) {
+        $wechatSendArgs.CoverPath = $WeChatCoverPath
+    }
+    if (-not [string]::IsNullOrWhiteSpace($WeChatAccount)) {
+        $wechatSendArgs.Account = $WeChatAccount
+    }
+    if (-not [string]::IsNullOrWhiteSpace($WeChatTheme)) {
+        $wechatSendArgs.Theme = $WeChatTheme
+    }
+    if (-not [string]::IsNullOrWhiteSpace($WeChatColor)) {
+        $wechatSendArgs.Color = $WeChatColor
+    }
+    if ($DryRunWeChat) {
+        $wechatSendArgs.DryRun = $true
+    }
+
+    $wechatResult = & (Join-Path $channelsRoot "Send-WeChatDailyRadarDraft.ps1") @wechatSendArgs
 }
 
 $candidateCount = if ($collect) { $collect.CandidateCount } else { $null }
@@ -109,7 +158,7 @@ if ((-not $collect) -and (Test-Path -LiteralPath $candidatesPath)) {
     $failedSourceCount = @($existingCandidates.sources | Where-Object { -not $_.ok }).Count
 }
 
-$metadataPath = Join-Path $runDir "run-metadata.json"
+$metadataPath = Join-Path $commonDir "run-metadata.json"
 $metadata = [PSCustomObject]@{
     topic = [string]$topicConfig.id
     date = $dateText
@@ -124,9 +173,18 @@ $metadata = [PSCustomObject]@{
         dry_run_feishu = [bool]$DryRunFeishu
         send_feishu = [bool]$SendFeishu
         text_only = [bool]$TextOnly
+        config_path = $ConfigPath
+        create_wechat_draft = [bool]$CreateWeChatDraft
+        dry_run_wechat = [bool]$DryRunWeChat
+        wechat_article_path = $WeChatArticlePath
+        wechat_cover_path = $WeChatCoverPath
+        wechat_account = $WeChatAccount
+        wechat_theme = $WeChatTheme
+        wechat_color = $WeChatColor
     }
     paths = [PSCustomObject]@{
         run_dir = $runDir
+        common_dir = $commonDir
         candidates = $candidatesPath
         generate_prompt = $generatePromptPath
         markdown = $markdownPath
@@ -146,6 +204,7 @@ $metadata | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $metadataPath -E
     Topic = [string]$topicConfig.id
     Date = $dateText
     RunDir = $runDir
+    CommonDir = $commonDir
     CandidatesPath = $candidatesPath
     CandidateCount = $candidateCount
     SourceCount = $sourceCount
@@ -157,4 +216,5 @@ $metadata | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $metadataPath -E
     MetadataPath = $metadataPath
     NextStep = "Ask Codex: Read today's generate-prompt.md and generate the report, but do not send to Feishu yet."
     FeishuResult = $feishuResult
+    WeChatResult = $wechatResult
 } | ConvertTo-Json -Depth 8

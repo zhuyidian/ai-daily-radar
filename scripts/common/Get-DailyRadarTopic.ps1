@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$projectRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
+$projectRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..")
 $topicPath = Join-Path $projectRoot (Join-Path "config\topics" (Join-Path $Topic "topic.json"))
 
 if (-not (Test-Path -LiteralPath $topicPath)) {

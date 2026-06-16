@@ -8,15 +8,15 @@
 4. 重点关注 Android 平台、Android Studio、Android Gradle Plugin、Gradle、Kotlin、Jetpack、Compose、Google Play 政策、安全公告、兼容性、性能和重要开源库。
 5. 去重并保留最重要内容，另给一句话快讯。
 6. 先运行候选新闻采集脚本：
-   `.\scripts\Collect-NewsCandidates.ps1 -Topic android -LookbackHours 24`
+   `.\scripts\common\Collect-NewsCandidates.ps1 -Topic android -LookbackHours 24`
 7. 运行生成提示脚本：
-   `.\scripts\Generate-DailyRadar.ps1 -Topic android`
-8. 读取 `.runs\android-daily-radar\YYYY-MM-DD\generate-prompt.md`，结合候选新闻继续搜索核验，不要只依赖候选列表。
+   `.\scripts\common\Generate-DailyRadar.ps1 -Topic android`
+8. 读取 `.runs\android-daily-radar\YYYY-MM-DD\common\generate-prompt.md`，结合候选新闻继续搜索核验，不要只依赖候选列表。
 9. 生成中文 Markdown 日报和 JSON 数据文件：
-   - `.runs\android-daily-radar\YYYY-MM-DD\android-daily-radar.md`
-   - `.runs\android-daily-radar\YYYY-MM-DD\android-daily-radar.json`
+   - `.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.md`
+   - `.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.json`
 10. Markdown 写完后运行：
-   `.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\android-daily-radar\YYYY-MM-DD\android-daily-radar.md`
+   `.\scripts\channels\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.md`
 
 写作标准：
 

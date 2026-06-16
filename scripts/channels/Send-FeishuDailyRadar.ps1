@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$MarkdownPath,
 
+    [string]$ConfigPath = "",
     [string]$Title,
     [switch]$TextOnly,
     [switch]$DryRun,
@@ -12,13 +13,101 @@ param(
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-function Get-RequiredEnv {
-    param([string]$Name)
-    $value = [Environment]::GetEnvironmentVariable($Name)
+function Read-LocalSecrets {
+    param([string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+        $Path = Join-Path $projectRoot "config\local.secrets.json"
+    }
+    if (-not (Test-Path -LiteralPath $Path)) {
+        throw "Config file does not exist: $Path. Copy config/local.secrets.example.json to config/local.secrets.json and fill in feishu keys."
+    }
+    $content = Get-Content -LiteralPath $Path -Raw -Encoding UTF8
+    return (Remove-JsonHashComments -Content $content) | ConvertFrom-Json
+}
+
+function Remove-JsonHashComments {
+    param([string]$Content)
+
+    $builder = [System.Text.StringBuilder]::new()
+    $inString = $false
+    $escaped = $false
+    for ($i = 0; $i -lt $Content.Length; $i++) {
+        $char = $Content[$i]
+        if ($inString) {
+            [void]$builder.Append($char)
+            if ($escaped) {
+                $escaped = $false
+            } elseif ($char -eq '\') {
+                $escaped = $true
+            } elseif ($char -eq '"') {
+                $inString = $false
+            }
+            continue
+        }
+        if ($char -eq '"') {
+            $inString = $true
+            [void]$builder.Append($char)
+            continue
+        }
+        if ($char -eq '#') {
+            while ($i -lt $Content.Length -and $Content[$i] -notin @("`r", "`n")) {
+                $i++
+            }
+            if ($i -lt $Content.Length) {
+                [void]$builder.Append($Content[$i])
+            }
+            continue
+        }
+        [void]$builder.Append($char)
+    }
+    return $builder.ToString()
+}
+
+function Get-RequiredConfigValue {
+    param(
+        [object]$Config,
+        [string]$Section,
+        [string]$Name
+    )
+
+    $sectionValue = $Config.$Section
+    if ($null -eq $sectionValue) {
+        throw "Config is missing '$Section' section."
+    }
+    $value = [string]$sectionValue.$Name
     if ([string]::IsNullOrWhiteSpace($value)) {
-        throw "Missing required environment variable: $Name"
+        throw "Config is missing required value: $Section.$Name"
     }
     return $value
+}
+
+function Test-PlaceholderConfigValue {
+    param(
+        [string]$Value,
+        [string]$PlaceholderPattern
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $false
+    }
+    return $Value -match $PlaceholderPattern
+}
+
+function Get-FeishuImportFailureMessage {
+    param(
+        [int]$Status,
+        [string]$Message
+    )
+
+    switch ($Status) {
+        110 { return "No permission. Check the app's Drive permissions and document access." }
+        116 { return "Directory no permission. The Feishu app cannot write to the configured folder_token. Add the app/bot as a collaborator with edit permission, or use a folder owned/created by the app." }
+        117 { return "Directory deleted. Check whether config feishu.folder_token still points to an existing folder." }
+        119 { return "Directory not found. Check whether config feishu.folder_token is the token from a /drive/folder/... URL." }
+        default { return $Message }
+    }
 }
 
 function Invoke-FeishuJson {
@@ -268,7 +357,8 @@ function Import-MarkdownToFeishuDoc {
         }
 
         if ($result.job_status -notin @(1, 2)) {
-            throw "Feishu import failed: status=$($result.job_status), msg=$($result.job_error_msg)"
+            $friendlyMessage = Get-FeishuImportFailureMessage -Status ([int]$result.job_status) -Message ([string]$result.job_error_msg)
+            throw "Feishu import failed: status=$($result.job_status), msg=$($result.job_error_msg). $friendlyMessage"
         }
     }
 
@@ -276,9 +366,12 @@ function Import-MarkdownToFeishuDoc {
 }
 
 $resolvedMarkdownPath = Resolve-Path -LiteralPath $MarkdownPath
-$runDir = Split-Path -Parent $resolvedMarkdownPath
-$dryRunResultPath = Join-Path $runDir "feishu-dry-run.json"
-$sendResultPath = Join-Path $runDir "feishu-send-result.json"
+$markdownDir = Split-Path -Parent $resolvedMarkdownPath
+$runDir = if ((Split-Path -Leaf $markdownDir) -eq "common") { Split-Path -Parent $markdownDir } else { $markdownDir }
+$feishuDir = Join-Path (Join-Path $runDir "channels") "feishu"
+New-Item -ItemType Directory -Force -Path $feishuDir | Out-Null
+$dryRunResultPath = Join-Path $feishuDir "feishu-dry-run.json"
+$sendResultPath = Join-Path $feishuDir "feishu-send-result.json"
 $content = Get-Content -LiteralPath $resolvedMarkdownPath -Raw -Encoding UTF8
 
 if ([string]::IsNullOrWhiteSpace($Title)) {
@@ -291,7 +384,9 @@ if ([string]::IsNullOrWhiteSpace($Title)) {
     }
 }
 
-$baseUrl = [Environment]::GetEnvironmentVariable("FEISHU_OPEN_API_BASE")
+$localSecrets = Read-LocalSecrets -Path $ConfigPath
+
+$baseUrl = [string]$localSecrets.feishu.open_api_base
 if ([string]::IsNullOrWhiteSpace($baseUrl)) {
     $baseUrl = "https://open.feishu.cn"
 }
@@ -314,12 +409,15 @@ if ($DryRun) {
     return
 }
 
-$appId = Get-RequiredEnv "FEISHU_APP_ID"
-$appSecret = Get-RequiredEnv "FEISHU_APP_SECRET"
-$chatId = Get-RequiredEnv "FEISHU_CHAT_ID"
-$folderToken = [Environment]::GetEnvironmentVariable("FEISHU_FOLDER_TOKEN")
-if ($null -eq $folderToken) {
+$appId = Get-RequiredConfigValue -Config $localSecrets -Section "feishu" -Name "app_id"
+$appSecret = Get-RequiredConfigValue -Config $localSecrets -Section "feishu" -Name "app_secret"
+$chatId = Get-RequiredConfigValue -Config $localSecrets -Section "feishu" -Name "chat_id"
+$folderToken = [string]$localSecrets.feishu.folder_token
+if ([string]::IsNullOrWhiteSpace($folderToken)) {
     $folderToken = ""
+}
+if ((-not $TextOnly) -and (Test-PlaceholderConfigValue -Value $folderToken -PlaceholderPattern "^fld_x+")) {
+    throw "Config feishu.folder_token is still a placeholder. Fill config/local.secrets.json with a writable Feishu folder token, set it to an empty string to import to the default cloud space root, or rerun with -TextOnly to send only the text summary."
 }
 
 $token = New-FeishuAccessToken -BaseUrl $baseUrl -AppId $appId -AppSecret $appSecret

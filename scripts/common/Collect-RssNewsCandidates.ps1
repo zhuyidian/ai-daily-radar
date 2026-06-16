@@ -179,13 +179,14 @@ function New-GoogleNewsFeedUrl {
     return "https://news.google.com/rss/search?q=$encoded&hl=en-US&gl=US&ceid=US:en"
 }
 
-$projectRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")
+$projectRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..")
 $configFullPath = Resolve-Path -LiteralPath (Join-Path $projectRoot $ConfigPath)
 $config = Get-Content -LiteralPath $configFullPath -Raw -Encoding UTF8 | ConvertFrom-Json
 
 $dateText = $Date.ToString("yyyy-MM-dd")
 $runDir = Join-Path $projectRoot (Join-Path $OutputRoot $dateText)
-New-Item -ItemType Directory -Force -Path $runDir | Out-Null
+$commonDir = Join-Path $runDir "common"
+New-Item -ItemType Directory -Force -Path $commonDir | Out-Null
 
 $windowEnd = [DateTimeOffset]$Date
 $windowStart = $windowEnd.AddHours(-1 * $LookbackHours)
@@ -255,7 +256,7 @@ $output = [PSCustomObject]@{
     candidates = $orderedCandidates
 }
 
-$outputPath = Join-Path $runDir "candidates.json"
+$outputPath = Join-Path $commonDir "candidates.json"
 $output | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $outputPath -Encoding UTF8
 
 $failedSourceCount = 0
@@ -269,6 +270,7 @@ $sourceCount = $sourceResults.Count
 [PSCustomObject]@{
     Date = $dateText
     RunDir = $runDir
+    CommonDir = $commonDir
     OutputPath = $outputPath
     CandidateCount = $orderedCandidates.Count
     SourceCount = $sourceCount

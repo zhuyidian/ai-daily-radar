@@ -8,15 +8,15 @@
 4. 重点关注模型发布、AI Agent、AI 编程、AI 视频、图像、多模态、AI 基础设施、产业融资并购、监管政策，以及对中国用户/开发者/内容创作者有实际影响的变化。
 5. 去重并保留 5-8 条最重要内容，另给 3-8 条一句话快讯。
 6. 先运行候选新闻采集脚本：
-   `.\scripts\Collect-NewsCandidates.ps1 -Topic ai -LookbackHours 24`
+   `.\scripts\common\Collect-NewsCandidates.ps1 -Topic ai -LookbackHours 24`
 7. 运行生成提示脚本：
-   `.\scripts\Generate-DailyRadar.ps1 -Topic ai`
-8. 读取 `.runs\ai-daily-radar\YYYY-MM-DD\generate-prompt.md`，结合候选新闻继续搜索核验，不要只依赖候选列表。
+   `.\scripts\common\Generate-DailyRadar.ps1 -Topic ai`
+8. 读取 `.runs\ai-daily-radar\YYYY-MM-DD\common\generate-prompt.md`，结合候选新闻继续搜索核验，不要只依赖候选列表。
 9. 生成中文 Markdown 日报和 JSON 数据文件：
-   - `.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.md`
-   - `.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.json`
+   - `.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md`
+   - `.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.json`
 10. Markdown 写完后运行：
-   `.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.md`
+   `.\scripts\channels\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md`
 
 写作标准：
 

@@ -14,13 +14,14 @@ if ($LookbackHours -le 0) {
 $projectRoot = [string]$topicConfig.ProjectRoot
 $dateText = $Date.ToString("yyyy-MM-dd")
 $runDir = Join-Path $projectRoot (Join-Path ([string]$topicConfig.RunRoot) $dateText)
+$commonDir = Join-Path $runDir "common"
 
-New-Item -ItemType Directory -Force -Path $runDir | Out-Null
+New-Item -ItemType Directory -Force -Path $commonDir | Out-Null
 
-$markdownPath = Join-Path $runDir ([string]$topicConfig.output_markdown_name)
-$jsonPath = Join-Path $runDir ([string]$topicConfig.output_json_name)
-$promptPath = Join-Path $runDir "run-prompt.md"
-$sourcesTarget = Join-Path $runDir "sources.json"
+$markdownPath = Join-Path $commonDir ([string]$topicConfig.output_markdown_name)
+$jsonPath = Join-Path $commonDir ([string]$topicConfig.output_json_name)
+$promptPath = Join-Path $commonDir "run-prompt.md"
+$sourcesTarget = Join-Path $commonDir "sources.json"
 
 if (-not (Test-Path -LiteralPath $markdownPath)) {
     Copy-Item -LiteralPath ([string]$topicConfig.TemplateFullPath) -Destination $markdownPath
@@ -58,6 +59,7 @@ Set-Content -LiteralPath $promptPath -Value $runPrompt -Encoding UTF8
     Topic = $topicConfig.id
     Date = $dateText
     RunDir = $runDir
+    CommonDir = $commonDir
     MarkdownPath = $markdownPath
     JsonPath = $jsonPath
     PromptPath = $promptPath

@@ -35,19 +35,20 @@ if ($TopCandidateCount -le 0) {
 $projectRoot = [string]$topicConfig.ProjectRoot
 $dateText = $Date.ToString("yyyy-MM-dd")
 $runDir = Join-Path $projectRoot (Join-Path ([string]$topicConfig.RunRoot) $dateText)
+$commonDir = Join-Path $runDir "common"
 
-if (-not (Test-Path -LiteralPath $runDir)) {
-    throw "Run directory does not exist: $runDir. Run Invoke-DailyRadar.ps1 first."
+if (-not (Test-Path -LiteralPath $commonDir)) {
+    throw "Common run directory does not exist: $commonDir. Run Invoke-DailyRadar.ps1 first."
 }
 
-$candidatesPath = Join-Path $runDir "candidates.json"
+$candidatesPath = Join-Path $commonDir "candidates.json"
 if (-not (Test-Path -LiteralPath $candidatesPath)) {
     throw "Candidates file does not exist: $candidatesPath. Run Collect-NewsCandidates.ps1 first."
 }
 
-$markdownPath = Join-Path $runDir ([string]$topicConfig.output_markdown_name)
-$jsonPath = Join-Path $runDir ([string]$topicConfig.output_json_name)
-$generatePromptPath = Join-Path $runDir "generate-prompt.md"
+$markdownPath = Join-Path $commonDir ([string]$topicConfig.output_markdown_name)
+$jsonPath = Join-Path $commonDir ([string]$topicConfig.output_json_name)
+$generatePromptPath = Join-Path $commonDir "generate-prompt.md"
 $skillPath = [string]$topicConfig.SkillFullPath
 
 $candidateData = Get-Content -LiteralPath $candidatesPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -104,6 +105,7 @@ Set-Content -LiteralPath $generatePromptPath -Value $prompt -Encoding UTF8
     Topic = $topicConfig.id
     Date = $dateText
     RunDir = $runDir
+    CommonDir = $commonDir
     CandidatesPath = $candidatesPath
     CandidateCount = $candidateData.candidate_count
     TopCandidateCount = $topCandidates.Count
