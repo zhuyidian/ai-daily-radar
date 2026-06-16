@@ -184,7 +184,8 @@ if (-not [string]::IsNullOrWhiteSpace($CoverPath)) {
 $runtimeDir = Join-Path $runDir ".baoyu-runtime"
 $extendPath = Write-RuntimeExtend -RuntimeDir $runtimeDir -Account $wechatAccount -ResolvedTheme $Theme -ResolvedColor $Color
 
-$scriptPath = "C:\Users\zhuyidian\.agents\skills\baoyu-post-to-wechat\scripts\wechat-api.ts"
+$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$scriptPath = Join-Path $projectRoot "skills\baoyu-post-to-wechat\scripts\wechat-api.ts"
 if (-not (Test-Path -LiteralPath $scriptPath)) {
     throw "baoyu-post-to-wechat API script not found: $scriptPath"
 }

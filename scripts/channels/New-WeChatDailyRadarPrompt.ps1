@@ -32,6 +32,8 @@ $resolvedMarkdownPath = Resolve-Path -LiteralPath $MarkdownPath
 $markdownFile = Get-Item -LiteralPath $resolvedMarkdownPath
 $commonDir = $markdownFile.Directory.FullName
 $runDir = Get-RunDirFromMarkdown -MarkdownFile $markdownFile
+$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$wechatArticleWriterSkillPath = Join-Path $projectRoot "skills\wechat-article-writer\SKILL.md"
 
 if ([string]::IsNullOrWhiteSpace($JsonPath)) {
     $JsonPath = [System.IO.Path]::ChangeExtension($markdownFile.FullName, ".json")
@@ -67,7 +69,7 @@ Read the machine-readable report:
 $resolvedJsonPath
 
 Follow the third-party skill:
-C:\Users\zhuyidian\.agents\skills\wechat-article-writer\SKILL.md
+$wechatArticleWriterSkillPath
 
 Write a WeChat Official Account article in Chinese.
 

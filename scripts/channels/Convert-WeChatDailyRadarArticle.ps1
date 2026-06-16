@@ -181,7 +181,8 @@ if ([string]::IsNullOrWhiteSpace($Color)) {
     $Color = if ($wechatAccount.color) { [string]$wechatAccount.color } else { "blue" }
 }
 
-$scriptPath = "C:\Users\zhuyidian\.agents\skills\baoyu-markdown-to-html\scripts\main.ts"
+$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$scriptPath = Join-Path $projectRoot "skills\baoyu-markdown-to-html\scripts\main.ts"
 if (-not (Test-Path -LiteralPath $scriptPath)) {
     throw "baoyu-markdown-to-html script not found: $scriptPath"
 }
