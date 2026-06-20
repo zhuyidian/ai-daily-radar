@@ -16,13 +16,22 @@ param(
 $ErrorActionPreference = "Stop"
 
 function Get-BunCommand {
-    $bun = Get-Command bun -ErrorAction SilentlyContinue
-    if ($bun) {
-        return $bun.Source
+    foreach ($commandName in @("bun.cmd", "bun.exe", "bun", "npx.cmd", "npx.exe", "npx")) {
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue
+        if ($command -and $command.Source -match '\.(cmd|exe)$') {
+            return $command.Source
+        }
     }
-    $npx = Get-Command npx -ErrorAction SilentlyContinue
-    if ($npx) {
-        return $npx.Source
+
+    foreach ($candidate in @(
+        "C:\Program Files\nodejs\npx.cmd",
+        "C:\Program Files\nodejs\npx.exe",
+        "$env:USERPROFILE\AppData\Roaming\npm\bun.cmd",
+        "$env:USERPROFILE\AppData\Roaming\npm\bun.exe"
+    )) {
+        if (Test-Path -LiteralPath $candidate) {
+            return $candidate
+        }
     }
     throw "Neither bun nor npx was found. Install bun or npx before creating WeChat drafts."
 }
@@ -31,7 +40,7 @@ function Read-Config {
     param([string]$Path)
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
-        $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+        $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..\..\..")).Path
         $Path = Join-Path $projectRoot "config\local.secrets.json"
     }
     if (-not (Test-Path -LiteralPath $Path)) {
@@ -157,8 +166,43 @@ function Write-RuntimeExtend {
     return $extendPath
 }
 
+function Write-RuntimeEnv {
+    param(
+        [string]$RuntimeDir,
+        [object]$Account
+    )
+
+    $envDir = Join-Path $RuntimeDir ".baoyu-skills"
+    New-Item -ItemType Directory -Force -Path $envDir | Out-Null
+    $envPath = Join-Path $envDir ".env"
+    $aliasEnvPrefix = if (-not [string]::IsNullOrWhiteSpace([string]$Account.alias)) {
+        ([string]$Account.alias).ToUpperInvariant() -replace "-", "_"
+    } else {
+        ""
+    }
+
+    $lines = @(
+        "WECHAT_APP_ID=$([string]$Account.app_id)",
+        "WECHAT_APP_SECRET=$([string]$Account.app_secret)"
+    )
+    if (-not [string]::IsNullOrWhiteSpace($aliasEnvPrefix)) {
+        $lines += "WECHAT_${aliasEnvPrefix}_APP_ID=$([string]$Account.app_id)"
+        $lines += "WECHAT_${aliasEnvPrefix}_APP_SECRET=$([string]$Account.app_secret)"
+    }
+
+    ($lines -join [Environment]::NewLine) | Set-Content -LiteralPath $envPath -Encoding UTF8
+    return $envPath
+}
+
 $resolvedMarkdownPath = Resolve-Path -LiteralPath $MarkdownPath
 $runDir = Split-Path -Parent $resolvedMarkdownPath
+$articleChannel = Split-Path -Leaf $runDir
+$wechatRoot = if ($articleChannel -in @("daily-radar", "editorial")) {
+    Split-Path -Parent $runDir
+} else {
+    $runDir
+}
+$sharedRuntimeRoot = Join-Path $wechatRoot "common\.baoyu-runtime"
 $config = Read-Config -Path $ConfigPath
 $wechatAccount = Get-WeChatAccount -Config $config -Alias $Account
 
@@ -181,10 +225,11 @@ if (-not [string]::IsNullOrWhiteSpace($CoverPath)) {
     $resolvedCoverPath = (Resolve-Path -LiteralPath $CoverPath).ToString()
 }
 
-$runtimeDir = Join-Path $runDir ".baoyu-runtime"
+$runtimeDir = Join-Path $sharedRuntimeRoot $articleChannel
 $extendPath = Write-RuntimeExtend -RuntimeDir $runtimeDir -Account $wechatAccount -ResolvedTheme $Theme -ResolvedColor $Color
+$runtimeEnvPath = Write-RuntimeEnv -RuntimeDir $runtimeDir -Account $wechatAccount
 
-$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..\..\..")).Path
 $scriptPath = Join-Path $projectRoot "skills\baoyu-post-to-wechat\scripts\wechat-api.ts"
 if (-not (Test-Path -LiteralPath $scriptPath)) {
     throw "baoyu-post-to-wechat API script not found: $scriptPath"
@@ -194,6 +239,12 @@ $cmd = Get-BunCommand
 $cmdName = Split-Path -Leaf $cmd
 $args = @()
 if ($cmdName -like "npx*") {
+    if ([string]::IsNullOrWhiteSpace($env:npm_config_cache)) {
+        $npmCacheDir = Join-Path $projectRoot ".runs\npm-cache"
+        New-Item -ItemType Directory -Force -Path $npmCacheDir | Out-Null
+        $env:npm_config_cache = $npmCacheDir
+    }
+    $env:NPX_COMMAND = $cmd
     $args += @("-y", "bun")
 }
 $args += @($scriptPath, $resolvedMarkdownPath.ToString(), "--theme", $Theme, "--account", ([string]$wechatAccount.alias))
@@ -221,6 +272,13 @@ if ($DryRun) {
 
 Push-Location $runtimeDir
 try {
+    Remove-Item Env:WECHAT_APP_ID -ErrorAction SilentlyContinue
+    Remove-Item Env:WECHAT_APP_SECRET -ErrorAction SilentlyContinue
+    if (-not [string]::IsNullOrWhiteSpace([string]$wechatAccount.alias)) {
+        $aliasEnvPrefix = ([string]$wechatAccount.alias).ToUpperInvariant() -replace "-", "_"
+        Remove-Item "Env:WECHAT_${aliasEnvPrefix}_APP_ID" -ErrorAction SilentlyContinue
+        Remove-Item "Env:WECHAT_${aliasEnvPrefix}_APP_SECRET" -ErrorAction SilentlyContinue
+    }
     $output = & $cmd @args
     if ($LASTEXITCODE -ne 0) {
         throw "WeChat draft command failed."
@@ -228,6 +286,9 @@ try {
 }
 finally {
     Pop-Location
+    if (-not [string]::IsNullOrWhiteSpace($runtimeEnvPath) -and (Test-Path -LiteralPath $runtimeEnvPath)) {
+        Remove-Item -LiteralPath $runtimeEnvPath -Force
+    }
 }
 
 $result = $output | ConvertFrom-Json
@@ -240,6 +301,7 @@ $wrapped = [PSCustomObject]@{
     MarkdownPath = $resolvedMarkdownPath.ToString()
     CoverPath = $resolvedCoverPath
     RuntimeExtendPath = $extendPath
+    CredentialsSource = "config/local.secrets.json"
     DryRun = [bool]$DryRun
     Result = $result
     CreatedAt = ([DateTimeOffset]::Now).UtcDateTime.ToString("o")

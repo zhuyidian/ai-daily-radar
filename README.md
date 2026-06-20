@@ -13,10 +13,10 @@
 - `skills/<topic-skill>/`：每个主题的筛选、评分和写作口径。
 - `scripts/common/Run-DailyRadar.ps1`：多主题通用入口。
 - `scripts/topics/Run-*.ps1`：行业主题快捷入口。
-- `scripts/channels/Send-FeishuDailyRadar.ps1`：把本地 Markdown 日报导入飞书云文档，并把摘要和链接发到群。
-- `scripts/channels/New-WeChatDailyRadarPrompt.ps1`：为公众号版文章和插图生成 Codex handoff prompt。
-- `scripts/channels/Convert-WeChatDailyRadarArticle.ps1`：把公众号版 Markdown 转成微信兼容 HTML 预览。
-- `scripts/channels/Send-WeChatDailyRadarDraft.ps1`：把公众号版文章创建到微信公众号草稿箱。
+- `scripts/channels/feishu/`：飞书渠道脚本。
+- `scripts/channels/wechat/common/`：微信公众号各内容链路共用的排版和草稿发布脚本。
+- `scripts/channels/wechat/daily-radar/`：现有“日报转公众号文章”链路。
+- `scripts/channels/wechat/editorial/`：高质量“主题选题文章”链路。
 
 ## 目录
 
@@ -29,12 +29,14 @@
 |   |   |   |-- topic.json
 |   |   |   |-- collection-feeds.json
 |   |   |   |-- sources.json
-|   |   |   `-- automation-prompt.md
+|   |   |   |-- automation-prompt.md
+|   |   |   `-- wechat-editorial.json
 |   |   `-- android/
 |   |       |-- topic.json
 |   |       |-- collection-feeds.json
 |   |       |-- sources.json
-|   |       `-- automation-prompt.md
+|   |       |-- automation-prompt.md
+|   |       `-- wechat-editorial.json
 |-- scripts/
 |   |-- common/
 |   |   |-- Run-DailyRadar.ps1
@@ -47,14 +49,27 @@
 |   |   |-- Run-AiDailyRadar.ps1
 |   |   `-- Run-AndroidDailyRadar.ps1
 |   |-- channels/
-|   |   |-- Send-FeishuDailyRadar.ps1
-|   |   |-- New-WeChatDailyRadarPrompt.ps1
-|   |   |-- Convert-WeChatDailyRadarArticle.ps1
-|   |   `-- Send-WeChatDailyRadarDraft.ps1
+|   |   |-- feishu/
+|   |   |   `-- Send-FeishuDailyRadar.ps1
+|   |   `-- wechat/
+|   |       |-- common/
+|   |       |   |-- Convert-WeChatDailyRadarArticle.ps1
+|   |       |   `-- Send-WeChatDailyRadarDraft.ps1
+|   |       |-- daily-radar/
+|   |       |   `-- New-WeChatDailyRadarPrompt.ps1
+|   |       `-- editorial/
+|   |           |-- Editorial.Common.ps1
+|   |           |-- New-WeChatEditorialWorkflowPrompt.ps1
+|   |           |-- New-WeChatEditorialSelectionPrompt.ps1
+|   |           |-- New-WeChatEditorialArticlePrompt.ps1
+|   |           |-- New-WeChatEditorialReviewPrompt.ps1
+|   |           `-- New-WeChatEditorialAssetsPrompt.ps1
 |-- skills/
 |   |-- ai-daily-industry-radar/
 |   |   `-- SKILL.md
-|   `-- android-daily-developer-radar/
+|   |-- android-daily-developer-radar/
+|   |   `-- SKILL.md
+|   `-- wechat-editorial-writer/
 |       `-- SKILL.md
 `-- templates/
     |-- ai-daily-radar.md
@@ -63,12 +78,14 @@
 
 ## 版本管理
 
-当前版本：`V1.2.2`
+当前版本：`V1.3.0`
 
 版本记录：
 
 | 版本 | 说明 |
 | --- | --- |
+| `V1.3.0` | 新增 AI/Android 公众号主题文章链路，支持跨日报选题、发布门槛、标题生成、独立质检和视觉规划；按飞书、微信公共能力、日报链路和主题链路重构渠道目录及运行输出。 |
+| `V1.2.3` | 修复 Windows 下公众号 HTML 转换和草稿创建的 `bun`/`npx` 查找、命令引号与 npm 缓存问题；公众号草稿密钥统一从 `config/local.secrets.json` 读取。 |
 | `V1.2.2` | 将 `wechat-article-writer`、`baoyu-markdown-to-html`、`baoyu-post-to-wechat` 内置到项目 `skills/` 目录，并让公众号脚本使用项目内 skill，不再依赖全局 skill。 |
 | `V1.2.1` | 公众号文章生成阶段保留正文内普通 Markdown 来源链接，便于后续转换为微信底部引用。 |
 | `V1.2.0` | 新增微信公众号草稿箱链路，并统一飞书和公众号密钥到本地配置文件。 |
@@ -186,19 +203,19 @@ Copy-Item .\config\local.secrets.example.json .\config\local.secrets.json
 生成 Markdown 后，再发送飞书：
 
 ```powershell
-.\scripts\channels\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md
+.\scripts\channels\feishu\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md
 ```
 
 Android 日报对应：
 
 ```powershell
-.\scripts\channels\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.md
+.\scripts\channels\feishu\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.md
 ```
 
 只发纯文本摘要，不导入云文档：
 
 ```powershell
-.\scripts\channels\Send-FeishuDailyRadar.ps1 -MarkdownPath <markdown-path> -TextOnly
+.\scripts\channels\feishu\Send-FeishuDailyRadar.ps1 -MarkdownPath <markdown-path> -TextOnly
 ```
 
 ### 公众号草稿箱
@@ -217,14 +234,14 @@ Android 日报对应：
 先生成公众号文章和插图的 handoff prompt：
 
 ```powershell
-.\scripts\channels\New-WeChatDailyRadarPrompt.ps1 `
+.\scripts\channels\wechat\daily-radar\New-WeChatDailyRadarPrompt.ps1 `
   -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md
 ```
 
 然后对 Codex 说：
 
 ```text
-读取 .runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\wechat-article-prompt.md，生成公众号版文章；
+读取 .runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\wechat-article-prompt.md，生成公众号版文章；
 再读取 wechat-assets-prompt.md，用 imagegen 生成封面和插图。
 ```
 
@@ -240,7 +257,7 @@ Android 日报对应：
 生成后的目录约定：
 
 ```text
-.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\
+.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\
 |-- wechat-article.md
 |-- wechat-article.html
 |-- wechat-draft-result.json
@@ -253,25 +270,25 @@ Android 日报对应：
 排版预览：
 
 ```powershell
-.\scripts\channels\Convert-WeChatDailyRadarArticle.ps1 `
-  -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\wechat-article.md
+.\scripts\channels\wechat\common\Convert-WeChatDailyRadarArticle.ps1 `
+  -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\wechat-article.md
 ```
 
 先 dry run 检查公众号草稿参数，不创建草稿：
 
 ```powershell
-.\scripts\channels\Send-WeChatDailyRadarDraft.ps1 `
-  -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\wechat-article.md `
-  -CoverPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\imgs\cover.png `
+.\scripts\channels\wechat\common\Send-WeChatDailyRadarDraft.ps1 `
+  -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\wechat-article.md `
+  -CoverPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\imgs\cover.png `
   -DryRun
 ```
 
 确认后创建公众号草稿箱：
 
 ```powershell
-.\scripts\channels\Send-WeChatDailyRadarDraft.ps1 `
-  -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\wechat-article.md `
-  -CoverPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\imgs\cover.png
+.\scripts\channels\wechat\common\Send-WeChatDailyRadarDraft.ps1 `
+  -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\wechat-article.md `
+  -CoverPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\imgs\cover.png
 ```
 
 也可以通过通用入口触发已生成文章的草稿创建：
@@ -282,8 +299,55 @@ Android 日报对应：
   -SkipCollect `
   -SkipGenerate `
   -CreateWeChatDraft `
-  -WeChatCoverPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\imgs\cover.png
+  -WeChatCoverPath .\.runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\imgs\cover.png
 ```
+
+### 公众号主题选题文章
+
+新链路与现有公众号日报链路并存。它读取最近几天的日报 JSON，但每篇只围绕一个核心判断写作：
+
+```text
+近 3-5 天日报 JSON
+-> 选出一个主题并设置发布门槛
+-> 生成文章初稿和 10 个标题候选
+-> 独立核验事实、人话表达、篇幅与标题承诺
+-> 通过 80 分质量门槛后生成最终文章
+-> 规划非通用 AI 风格的封面和正文图
+-> 复用公众号公共脚本进行排版和草稿发布
+```
+
+生成选题提示：
+
+```powershell
+.\scripts\channels\wechat\editorial\New-WeChatEditorialWorkflowPrompt.ps1 `
+  -Topic ai `
+  -LookbackDays 5
+```
+
+Android主题文章使用：
+
+```powershell
+.\scripts\channels\wechat\editorial\New-WeChatEditorialWorkflowPrompt.ps1 `
+  -Topic android `
+  -LookbackDays 5
+```
+
+该入口生成一份完整工作流提示，适合每天直接交给 Codex 执行。下面的分阶段脚本用于局部重跑或调试。
+
+后续依次运行：
+
+```powershell
+.\scripts\channels\wechat\editorial\New-WeChatEditorialArticlePrompt.ps1 `
+  -DecisionPath <editorial-decision.json>
+
+.\scripts\channels\wechat\editorial\New-WeChatEditorialReviewPrompt.ps1 `
+  -DraftPath <wechat-article-draft.md>
+
+.\scripts\channels\wechat\editorial\New-WeChatEditorialAssetsPrompt.ps1 `
+  -MarkdownPath <wechat-article.md>
+```
+
+完整分步说明见 `scripts/channels/wechat/editorial/README.md`。当选题评分不足或证据无法形成明确论点时，`editorial-decision.json` 应设置 `publish=false`，不强行生成主题文章。
 
 ## 分步执行
 
@@ -350,10 +414,12 @@ AI：
 - 运行提示：`.runs/ai-daily-radar/YYYY-MM-DD/common/run-prompt.md`
 - 运行元数据：`.runs/ai-daily-radar/YYYY-MM-DD/common/run-metadata.json`
 - 飞书结果：`.runs/ai-daily-radar/YYYY-MM-DD/channels/feishu/`
-- 公众号文章：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/wechat-article.md`
-- 公众号 HTML 预览：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/wechat-article.html`
-- 公众号插图：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/imgs/`
-- 公众号草稿结果：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/wechat-draft-result.json`
+- 公众号日报文章：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/daily-radar/wechat-article.md`
+- 公众号日报 HTML：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/daily-radar/wechat-article.html`
+- 公众号日报插图：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/daily-radar/imgs/`
+- 公众号日报草稿结果：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/daily-radar/wechat-draft-result.json`
+- 公众号主题文章：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/editorial/wechat-article.md`
+- 微信公共运行文件：`.runs/ai-daily-radar/YYYY-MM-DD/channels/wechat/common/`
 
 Android：
 

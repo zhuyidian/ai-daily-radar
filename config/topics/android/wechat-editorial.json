@@ -1,0 +1,68 @@
+{
+  "enabled": true,
+  "lookback_days": 5,
+  "min_topic_score": 75,
+  "min_related_items": 2,
+  "max_selected_items": 4,
+  "target_readers": [
+    "Android 开发者",
+    "移动端技术负责人和架构师",
+    "负责应用发布、兼容性与质量的工程团队",
+    "关注 Kotlin、Compose 和 Android 工程实践的中文读者"
+  ],
+  "article_types": {
+    "sharp_commentary": {
+      "label": "开发者锐评",
+      "min_chars": 900,
+      "max_chars": 1400
+    },
+    "release_analysis": {
+      "label": "版本与工具解读",
+      "min_chars": 1400,
+      "max_chars": 2200
+    },
+    "migration_guide": {
+      "label": "升级迁移指南",
+      "min_chars": 1800,
+      "max_chars": 2800
+    },
+    "policy_impact": {
+      "label": "政策与兼容性影响",
+      "min_chars": 1500,
+      "max_chars": 2400
+    },
+    "deep_dive": {
+      "label": "工程深度拆解",
+      "min_chars": 2200,
+      "max_chars": 3200
+    }
+  },
+  "default_article_type": "release_analysis",
+  "quality_gate": {
+    "minimum_total": 80,
+    "facts_and_sources": 25,
+    "thesis_and_judgment": 20,
+    "reader_value": 15,
+    "natural_voice": 15,
+    "structure_and_length": 10,
+    "title_and_opening": 5,
+    "visual_direction": 10
+  },
+  "visual": {
+    "body_image_min": 1,
+    "body_image_max": 3,
+    "palette": "低饱和开发者杂志色板，以深灰、米白和克制的 Android 绿色为主",
+    "style": "开发者杂志、真实 IDE 或应用截图标注、简洁架构图、迁移流程图或克制手绘线稿",
+    "avoid": [
+      "未经授权或变形的 Android、Google、Kotlin 品牌标志",
+      "虚构的 Android Studio、Play Console 或手机界面",
+      "无法运行的装饰性代码",
+      "假性能数据、假基准和假版本号",
+      "绿色机器人作为通用装饰",
+      "霓虹赛博城市和悬浮屏幕",
+      "蓝紫色通用科技渐变",
+      "光滑 3D 科技物体",
+      "乱码文字和密集无意义 UI"
+    ]
+  }
+}

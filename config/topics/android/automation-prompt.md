@@ -16,7 +16,7 @@
    - `.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.md`
    - `.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.json`
 10. Markdown 写完后运行：
-   `.\scripts\channels\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.md`
+   `.\scripts\channels\feishu\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\android-daily-radar\YYYY-MM-DD\common\android-daily-radar.md`
 
 写作标准：
 

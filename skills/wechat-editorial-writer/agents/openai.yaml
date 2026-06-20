@@ -1,0 +1,4 @@
+﻿interface:
+  display_name: "公众号主题编辑"
+  short_description: "把日报素材写成有判断、有人味、有编辑感的公众号文章"
+  default_prompt: "Use $wechat-editorial-writer to turn verified daily-radar material into a publishable Chinese WeChat editorial article."

@@ -17,7 +17,7 @@ function Read-LocalSecrets {
     param([string]$Path)
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
-        $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+        $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..\..")).Path
         $Path = Join-Path $projectRoot "config\local.secrets.json"
     }
     if (-not (Test-Path -LiteralPath $Path)) {

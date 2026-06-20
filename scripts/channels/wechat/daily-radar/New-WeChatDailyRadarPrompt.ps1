@@ -32,7 +32,7 @@ $resolvedMarkdownPath = Resolve-Path -LiteralPath $MarkdownPath
 $markdownFile = Get-Item -LiteralPath $resolvedMarkdownPath
 $commonDir = $markdownFile.Directory.FullName
 $runDir = Get-RunDirFromMarkdown -MarkdownFile $markdownFile
-$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..\..\..")).Path
 $wechatArticleWriterSkillPath = Join-Path $projectRoot "skills\wechat-article-writer\SKILL.md"
 
 if ([string]::IsNullOrWhiteSpace($JsonPath)) {
@@ -40,9 +40,11 @@ if ([string]::IsNullOrWhiteSpace($JsonPath)) {
 }
 $resolvedJsonPath = Resolve-Path -LiteralPath $JsonPath
 
-$wechatDir = Join-Path (Join-Path $runDir "channels") "wechat"
+$wechatRoot = Join-Path (Join-Path $runDir "channels") "wechat"
+$wechatCommonDir = Join-Path $wechatRoot "common"
+$wechatDir = Join-Path $wechatRoot "daily-radar"
 $imageDir = Join-Path $wechatDir "imgs"
-New-Item -ItemType Directory -Force -Path $wechatDir, $imageDir | Out-Null
+New-Item -ItemType Directory -Force -Path $wechatCommonDir, $wechatDir, $imageDir | Out-Null
 
 $articlePath = Join-Path $wechatDir "wechat-article.md"
 $promptPath = Join-Path $wechatDir "wechat-article-prompt.md"

@@ -146,10 +146,10 @@ Also produce a machine-readable JSON file:
 
 ## Feishu Delivery
 
-When the project contains `scripts/Send-FeishuDailyRadar.ps1`, use it after writing the Markdown:
+When the project contains `scripts/channels/feishu/Send-FeishuDailyRadar.ps1`, use it after writing the Markdown:
 
 ```powershell
-.\scripts\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\ai-daily-radar.md
+.\scripts\channels\feishu\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md
 ```
 
 Use `-TextOnly` only when the user does not want a cloud document or when import permissions are unavailable.

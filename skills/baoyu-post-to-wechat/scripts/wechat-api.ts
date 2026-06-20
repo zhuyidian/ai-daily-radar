@@ -434,9 +434,12 @@ function renderMarkdownWithPlaceholders(
   if (!citeStatus) args.push("--no-cite");
 
   console.error(`[wechat-api] Rendering markdown with placeholders via md-to-wechat: ${theme}${color ? `, color: ${color}` : ""}, citeStatus: ${citeStatus}`);
-  const result = spawnSync("npx", args, {
+  const npxCommand = process.env.NPX_COMMAND || (process.platform === "win32" ? "npx.cmd" : "npx");
+  const result = spawnSync(npxCommand, args, {
     stdio: ["inherit", "pipe", "pipe"],
     cwd: baseDir,
+    env: process.env,
+    timeout: 120_000,
   });
 
   if (result.status !== 0) {

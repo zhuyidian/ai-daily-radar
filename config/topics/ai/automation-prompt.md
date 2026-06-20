@@ -16,7 +16,7 @@
    - `.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md`
    - `.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.json`
 10. Markdown 写完后运行：
-   `.\scripts\channels\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md`
+   `.\scripts\channels\feishu\Send-FeishuDailyRadar.ps1 -MarkdownPath .\.runs\ai-daily-radar\YYYY-MM-DD\common\ai-daily-radar.md`
 
 写作标准：
 

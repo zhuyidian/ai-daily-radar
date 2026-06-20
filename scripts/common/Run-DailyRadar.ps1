@@ -110,16 +110,16 @@ if ($DryRunFeishu -or $SendFeishu) {
         $sendArgs.DryRun = $true
     }
 
-    $feishuResult = & (Join-Path $channelsRoot "Send-FeishuDailyRadar.ps1") @sendArgs
+    $feishuResult = & (Join-Path $channelsRoot "feishu\Send-FeishuDailyRadar.ps1") @sendArgs
 }
 
 $wechatResult = $null
 if ($CreateWeChatDraft -or $DryRunWeChat) {
     if ([string]::IsNullOrWhiteSpace($WeChatArticlePath)) {
-        $WeChatArticlePath = Join-Path (Join-Path (Join-Path $runDir "channels") "wechat") "wechat-article.md"
+        $WeChatArticlePath = Join-Path (Join-Path (Join-Path (Join-Path $runDir "channels") "wechat") "daily-radar") "wechat-article.md"
     }
     if (-not (Test-Path -LiteralPath $WeChatArticlePath)) {
-        throw "WeChat article file does not exist: $WeChatArticlePath. Run scripts/channels/New-WeChatDailyRadarPrompt.ps1, generate wechat-article.md, and create images first."
+        throw "WeChat article file does not exist: $WeChatArticlePath. Run scripts/channels/wechat/daily-radar/New-WeChatDailyRadarPrompt.ps1, generate wechat-article.md, and create images first."
     }
 
     $wechatSendArgs = @{
@@ -144,7 +144,7 @@ if ($CreateWeChatDraft -or $DryRunWeChat) {
         $wechatSendArgs.DryRun = $true
     }
 
-    $wechatResult = & (Join-Path $channelsRoot "Send-WeChatDailyRadarDraft.ps1") @wechatSendArgs
+    $wechatResult = & (Join-Path $channelsRoot "wechat\common\Send-WeChatDailyRadarDraft.ps1") @wechatSendArgs
 }
 
 $candidateCount = if ($collect) { $collect.CandidateCount } else { $null }

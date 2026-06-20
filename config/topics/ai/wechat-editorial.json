@@ -1,0 +1,62 @@
+{
+  "enabled": true,
+  "lookback_days": 5,
+  "min_topic_score": 75,
+  "min_related_items": 2,
+  "max_selected_items": 4,
+  "target_readers": [
+    "AI 开发者",
+    "产品经理和技术管理者",
+    "企业 AI 团队",
+    "关注 AI 产业变化的中国读者"
+  ],
+  "article_types": {
+    "sharp_commentary": {
+      "label": "锐评短文",
+      "min_chars": 900,
+      "max_chars": 1400
+    },
+    "trend_analysis": {
+      "label": "趋势分析",
+      "min_chars": 1500,
+      "max_chars": 2200
+    },
+    "deep_dive": {
+      "label": "深度拆解",
+      "min_chars": 2200,
+      "max_chars": 3200
+    },
+    "decision_guide": {
+      "label": "决策指南",
+      "min_chars": 1600,
+      "max_chars": 2400
+    }
+  },
+  "default_article_type": "trend_analysis",
+  "quality_gate": {
+    "minimum_total": 80,
+    "facts_and_sources": 25,
+    "thesis_and_judgment": 20,
+    "reader_value": 15,
+    "natural_voice": 15,
+    "structure_and_length": 10,
+    "title_and_opening": 5,
+    "visual_direction": 10
+  },
+  "visual": {
+    "body_image_min": 1,
+    "body_image_max": 2,
+    "palette": "低饱和编辑色板，2-3 种主色",
+    "style": "中文商业科技杂志、纸张拼贴、扁平信息图或克制手绘线稿",
+    "avoid": [
+      "发光大脑",
+      "人形机器人",
+      "赛博城市",
+      "悬浮屏幕",
+      "霓虹数据流",
+      "蓝紫色通用科技渐变",
+      "光滑 3D 科技物体",
+      "假 UI、假数据和乱码文字"
+    ]
+  }
+}

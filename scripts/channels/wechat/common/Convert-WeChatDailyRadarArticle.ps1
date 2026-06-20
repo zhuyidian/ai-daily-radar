@@ -12,21 +12,22 @@ param(
 $ErrorActionPreference = "Stop"
 
 function Get-BunCommand {
-    $bunCandidates = @(where.exe bun 2>$null) | Where-Object { $_ -match '\.(cmd|exe)$' }
-    if ($bunCandidates.Count -gt 0) {
-        return @($bunCandidates)[0]
+    foreach ($commandName in @("bun.cmd", "bun.exe", "bun", "npx.cmd", "npx.exe", "npx")) {
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue
+        if ($command -and $command.Source -match '\.(cmd|exe)$') {
+            return $command.Source
+        }
     }
-    $bun = Get-Command bun -ErrorAction SilentlyContinue
-    if ($bun -and $bun.Source -match '\.(cmd|exe)$') {
-        return $bun.Source
-    }
-    $npxCandidates = @(where.exe npx 2>$null) | Where-Object { $_ -match '\.(cmd|exe)$' }
-    if ($npxCandidates.Count -gt 0) {
-        return @($npxCandidates)[0]
-    }
-    $npx = Get-Command npx -ErrorAction SilentlyContinue
-    if ($npx -and $npx.Source -match '\.(cmd|exe)$') {
-        return $npx.Source
+
+    foreach ($candidate in @(
+        "C:\Program Files\nodejs\npx.cmd",
+        "C:\Program Files\nodejs\npx.exe",
+        "$env:USERPROFILE\AppData\Roaming\npm\bun.cmd",
+        "$env:USERPROFILE\AppData\Roaming\npm\bun.exe"
+    )) {
+        if (Test-Path -LiteralPath $candidate) {
+            return $candidate
+        }
     }
     throw "Neither bun nor npx was found. Install bun or npx before converting Markdown to HTML."
 }
@@ -59,7 +60,7 @@ function Invoke-Utf8Process {
             $commandLine += " " + (Join-ProcessArguments -Arguments $Arguments)
         }
         $startInfo.FileName = $env:ComSpec
-        $startInfo.Arguments = '/d /s /c "' + ($commandLine -replace '"', '""') + '"'
+        $startInfo.Arguments = '/d /s /c "' + $commandLine + '"'
     } else {
         $startInfo.FileName = $FilePath
         $startInfo.Arguments = Join-ProcessArguments -Arguments $Arguments
@@ -134,7 +135,7 @@ function Read-Config {
     param([string]$Path)
 
     if ([string]::IsNullOrWhiteSpace($Path)) {
-        $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+        $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..\..\..")).Path
         $Path = Join-Path $projectRoot "config\local.secrets.json"
     }
     if (-not (Test-Path -LiteralPath $Path)) {
@@ -181,7 +182,7 @@ if ([string]::IsNullOrWhiteSpace($Color)) {
     $Color = if ($wechatAccount.color) { [string]$wechatAccount.color } else { "blue" }
 }
 
-$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..\..\..")).Path
 $scriptPath = Join-Path $projectRoot "skills\baoyu-markdown-to-html\scripts\main.ts"
 if (-not (Test-Path -LiteralPath $scriptPath)) {
     throw "baoyu-markdown-to-html script not found: $scriptPath"
@@ -191,6 +192,11 @@ $cmd = Get-BunCommand
 $cmdName = Split-Path -Leaf $cmd
 $args = @()
 if ($cmdName -like "npx*") {
+    if ([string]::IsNullOrWhiteSpace($env:npm_config_cache)) {
+        $npmCacheDir = Join-Path $projectRoot ".runs\npm-cache"
+        New-Item -ItemType Directory -Force -Path $npmCacheDir | Out-Null
+        $env:npm_config_cache = $npmCacheDir
+    }
     $args += @("-y", "bun")
 }
 $args += @($scriptPath, $resolvedMarkdownPath.ToString(), "--theme", $Theme)
