@@ -466,6 +466,12 @@ function extractHtmlContent(htmlPath: string): string {
   return bodyMatch ? bodyMatch[1]!.trim() : html;
 }
 
+function stringifyJsonForStdout(value: unknown): string {
+  return JSON.stringify(value, null, 2).replace(/[^\x00-\x7F]/g, (char) => {
+    return `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`;
+  });
+}
+
 function printUsage(): never {
   console.log(`Publish article to WeChat Official Account draft using API
 
@@ -683,7 +689,7 @@ async function main(): Promise<void> {
   if (!author && resolved.default_author) author = resolved.default_author;
 
   if (args.dryRun) {
-    console.log(JSON.stringify({
+    console.log(stringifyJsonForStdout({
       articleType: args.articleType,
       title,
       author: author || undefined,
@@ -692,7 +698,7 @@ async function main(): Promise<void> {
       contentLength: htmlContent.length,
       placeholderImageCount: contentImages.length || undefined,
       account: resolved.alias || undefined,
-    }, null, 2));
+    }));
     return;
   }
 
@@ -762,12 +768,12 @@ async function main(): Promise<void> {
     onlyFansCanComment: resolved.only_fans_can_comment,
   }, accessToken);
 
-  console.log(JSON.stringify({
+  console.log(stringifyJsonForStdout({
     success: true,
     media_id: result.media_id,
     title,
     articleType: args.articleType,
-  }, null, 2));
+  }));
 
   console.error(`[wechat-api] Published successfully! media_id: ${result.media_id}`);
 }
