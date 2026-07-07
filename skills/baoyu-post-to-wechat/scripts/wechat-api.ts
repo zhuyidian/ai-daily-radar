@@ -466,6 +466,25 @@ function extractHtmlContent(htmlPath: string): string {
   return bodyMatch ? bodyMatch[1]!.trim() : html;
 }
 
+const WECHAT_FOLLOW_BLOCK = `
+<section class="wechat-follow" style="margin: 28px 8px 18px; padding: 12px 14px; border-left: 3px solid #0F4C81; background: rgba(15, 76, 129, 0.04);">
+  <p style="margin: 0; color: #555; font-size: 14px; line-height: 1.9; letter-spacing: 0;">如果你关注 AI、Android、开发者工具和产品变化，欢迎关注。这里会持续筛选每天值得看的技术动态，整理成更适合开发者和产品人阅读的判断版。</p>
+</section>
+`.trim();
+
+function ensureWechatFollowBlock(html: string): string {
+  if (html.includes('class="wechat-follow"') || html.includes("这里会持续筛选每天值得看的技术动态")) {
+    return html;
+  }
+
+  const citationHeading = /(<h[1-6][^>]*>\s*(?:资料来源|引用链接)\s*<\/h[1-6]>)/;
+  if (citationHeading.test(html)) {
+    return html.replace(citationHeading, `${WECHAT_FOLLOW_BLOCK}\n$1`);
+  }
+
+  return `${html}\n${WECHAT_FOLLOW_BLOCK}`;
+}
+
 function stringifyJsonForStdout(value: unknown): string {
   return JSON.stringify(value, null, 2).replace(/[^\x00-\x7F]/g, (char) => {
     return `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`;
@@ -665,6 +684,8 @@ async function main(): Promise<void> {
     htmlContent = extractHtmlContent(htmlPath);
   }
 
+  htmlContent = ensureWechatFollowBlock(htmlContent);
+
   if (!title) {
     console.error("Error: No title found. Provide via --title, frontmatter, or <title> tag.");
     process.exit(1);
@@ -696,6 +717,7 @@ async function main(): Promise<void> {
       digest: digest || undefined,
       htmlPath,
       contentLength: htmlContent.length,
+      hasFollowGuide: htmlContent.includes('class="wechat-follow"'),
       placeholderImageCount: contentImages.length || undefined,
       account: resolved.alias || undefined,
     }));

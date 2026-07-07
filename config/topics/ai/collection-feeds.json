@@ -57,6 +57,30 @@
       "topics": ["agents", "coding"]
     },
     {
+      "name": "AI open source ecosystem",
+      "query": "(open source AI OR open-weight model OR Hugging Face OR Llama OR Qwen OR DeepSeek) (release OR benchmark OR license OR adoption)",
+      "priority": 8,
+      "topics": ["open-source", "models", "ecosystem"]
+    },
+    {
+      "name": "AI infrastructure and inference",
+      "query": "(AI inference OR AI chip OR GPU OR data center OR memory bandwidth OR model serving) (cost OR launch OR partnership OR benchmark)",
+      "priority": 8,
+      "topics": ["infrastructure", "chips", "inference"]
+    },
+    {
+      "name": "AI security abuse governance",
+      "query": "(AI security OR model abuse OR prompt injection OR AI governance OR AI safety evaluation) (report OR release OR policy OR research)",
+      "priority": 7,
+      "topics": ["security", "safety", "policy"]
+    },
+    {
+      "name": "AI business funding M&A",
+      "query": "(AI startup OR generative AI OR AI company) (funding OR acquisition OR merger OR revenue OR enterprise adoption)",
+      "priority": 7,
+      "topics": ["business", "funding", "enterprise"]
+    },
+    {
       "name": "AI video image multimodal",
       "query": "(AI video OR image model OR multimodal OR voice model) (release OR launch OR update)",
       "priority": 7,
@@ -94,9 +118,23 @@
     "reasoning",
     "benchmark",
     "API",
+    "inference",
+    "chip",
+    "GPU",
+    "data center",
+    "open source",
+    "funding",
+    "security",
+    "policy",
     "大模型",
     "智能体",
     "多模态",
-    "开源"
+    "开源",
+    "推理成本",
+    "芯片",
+    "数据中心",
+    "融资",
+    "安全",
+    "监管"
   ]
 }

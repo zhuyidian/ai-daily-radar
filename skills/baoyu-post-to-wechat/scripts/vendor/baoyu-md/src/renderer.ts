@@ -67,12 +67,24 @@ function buildAddition(): string {
 
 function buildFootnoteArray(footnotes: [number, string, string][]): string {
   return footnotes
-    .map(([index, title, link]) =>
-      link === title
-        ? `<code style="font-size: 90%; opacity: 0.6;">[${index}]</code>: <i style="word-break: break-all">${title}</i><br/>`
-        : `<code style="font-size: 90%; opacity: 0.6;">[${index}]</code> ${title}: <i style="word-break: break-all">${link}</i><br/>`
-    )
+    .map(([index, title, link]) => {
+      const displayTitle = link === title ? getCitationDomain(link) : title;
+      const sourceDomain = getCitationDomain(link);
+      const domainLabel = sourceDomain && sourceDomain !== displayTitle
+        ? ` <span class="footnote-domain">${sourceDomain}</span>`
+        : "";
+      return `<span class="footnote-item"><code>[${index}]</code> ${displayTitle}${domainLabel}</span><br/>`;
+    })
     .join("\n");
+}
+
+function getCitationDomain(link: string): string {
+  try {
+    const url = new URL(link);
+    return url.hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 
 function transform(legend: string, text: string | null, title: string | null): string {
@@ -179,7 +191,7 @@ export function initRenderer(opts: IOpts = {}): RendererAPI {
       return "";
     }
     return (
-      styledContent("h4", "引用链接")
+      styledContent("h4", "资料来源")
       + styledContent("footnotes", buildFootnoteArray(footnotes), "p")
     );
   };

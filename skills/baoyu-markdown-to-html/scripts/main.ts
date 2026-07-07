@@ -49,6 +49,7 @@ export async function convertMarkdown(
   const theme = options?.theme;
   const keepTitle = options?.keepTitle ?? false;
   const citeStatus = options?.citeStatus ?? false;
+  const wechatFollow = options?.wechatFollow ?? false;
 
   const { frontmatter, body } = parseFrontmatter(content);
 
@@ -77,13 +78,14 @@ export async function convertMarkdown(
   const rewrittenMarkdown = `${serializeFrontmatter(effectiveFrontmatter)}${rewrittenBody}`;
 
   console.error(
-    `[markdown-to-html] Rendering with theme: ${theme ?? "default"}, keepTitle: ${keepTitle}, citeStatus: ${citeStatus}`,
+    `[markdown-to-html] Rendering with theme: ${theme ?? "default"}, keepTitle: ${keepTitle}, citeStatus: ${citeStatus}, wechatFollow: ${wechatFollow}`,
   );
 
   const { html } = await renderMarkdownDocument(rewrittenMarkdown, {
     codeTheme: options?.codeTheme,
     countStatus: options?.countStatus,
     citeStatus,
+    wechatFollow,
     defaultTitle: title,
     fontFamily: options?.fontFamily,
     fontSize: options?.fontSize,
@@ -153,6 +155,7 @@ Options:
   --no-mac-code-block     Hide Mac-style code block header
   --line-number           Show line numbers in code blocks
   --cite                  Convert ordinary external links to bottom citations. Default: off
+  --wechat-follow         Add fixed WeChat follow CTA before bottom citations
   --count                 Show reading time / word count
   --legend <value>        Image caption: title-alt, alt-title, title, alt, none
   --keep-title            Keep the first heading in content. Default: false (removed)

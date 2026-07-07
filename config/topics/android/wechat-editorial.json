@@ -1,6 +1,9 @@
 {
   "enabled": true,
   "lookback_days": 5,
+  "history_lookback_days": 30,
+  "history_max_items": 8,
+  "similar_topic_score_cap": 74,
   "min_topic_score": 75,
   "min_related_items": 2,
   "max_selected_items": 4,
@@ -38,6 +41,36 @@
     }
   },
   "default_article_type": "release_analysis",
+  "topic_categories": [
+    {
+      "key": "release_tools",
+      "label": "Android Studio、Gradle、AGP、Kotlin 和 Compose 版本工具"
+    },
+    {
+      "key": "platform_api",
+      "label": "Android 平台 API、系统行为和兼容性变化"
+    },
+    {
+      "key": "play_policy",
+      "label": "Google Play 政策、审核和发布要求"
+    },
+    {
+      "key": "performance_quality",
+      "label": "性能、稳定性、测试和质量工程"
+    },
+    {
+      "key": "security_privacy",
+      "label": "安全、隐私、权限和供应链风险"
+    },
+    {
+      "key": "architecture_practice",
+      "label": "架构、迁移、工程实践和团队协作"
+    },
+    {
+      "key": "device_ecosystem",
+      "label": "设备生态、折叠屏、XR、车机和多端体验"
+    }
+  ],
   "quality_gate": {
     "minimum_total": 80,
     "facts_and_sources": 25,

@@ -1,6 +1,9 @@
 {
   "enabled": true,
   "lookback_days": 5,
+  "history_lookback_days": 30,
+  "history_max_items": 8,
+  "similar_topic_score_cap": 74,
   "min_topic_score": 75,
   "min_related_items": 2,
   "max_selected_items": 4,
@@ -33,6 +36,44 @@
     }
   },
   "default_article_type": "trend_analysis",
+  "topic_categories": [
+    {
+      "key": "agent_workflow",
+      "label": "Agent 工作流与开发工具"
+    },
+    {
+      "key": "model_release",
+      "label": "模型发布与能力边界"
+    },
+    {
+      "key": "open_source_model",
+      "label": "开源模型与生态"
+    },
+    {
+      "key": "ai_infrastructure",
+      "label": "推理成本、芯片、数据中心和基础设施"
+    },
+    {
+      "key": "policy_safety",
+      "label": "政策、合规、安全和滥用风险"
+    },
+    {
+      "key": "china_ai",
+      "label": "中国 AI 市场、产品和监管"
+    },
+    {
+      "key": "research_paper",
+      "label": "研究论文与方法变化"
+    },
+    {
+      "key": "product_app",
+      "label": "AI 应用产品、内容、视频、音频和设计工具"
+    },
+    {
+      "key": "business_funding",
+      "label": "融资、并购、商业化和产业合作"
+    }
+  ],
   "quality_gate": {
     "minimum_total": 80,
     "facts_and_sources": 25,

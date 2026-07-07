@@ -121,9 +121,12 @@ if (Test-Path "$HOME/.baoyu-skills/baoyu-post-to-wechat/EXTEND.md") { Select-Str
 **Enable only if the user explicitly asks** for "微信外链转底部引用", "底部引用", "文末引用", or passes `--cite`.
 
 **Behavior when enabled**:
-- Ordinary external links are rendered with numbered superscripts and collected under a final `引用链接` section.
+- Ordinary external links are rendered with numbered superscripts and collected under a final `资料来源` section.
+- Bottom citations show the source text plus a muted domain, not the full URL, to keep WeChat endings readable.
 - `https://mp.weixin.qq.com/...` links stay as direct links and are not moved to the bottom.
 - Bare links where link text equals URL stay inline.
+
+When the caller passes `--wechat-follow`, append the fixed WeChat follow CTA before bottom citations.
 
 ### Step 2: Convert
 
@@ -150,7 +153,8 @@ ${BUN_X} {baseDir}/scripts/main.ts <markdown_file> [options]
 | `--font-family <name>` | Font: sans, serif, serif-cjk, mono, or CSS value | theme default |
 | `--font-size <N>` | Font size: 14px, 15px, 16px, 17px, 18px | 16px |
 | `--title <title>` | Override title from frontmatter | |
-| `--cite` | Convert external links to bottom citations, append `引用链接` section | false (off) |
+| `--cite` | Convert external links to bottom citations, append `资料来源` section | false (off) |
+| `--wechat-follow` | Add the fixed WeChat follow CTA before bottom citations | false (off) |
 | `--keep-title` | Keep the first heading in content | false (removed) |
 | `--help` | Show help | |
 

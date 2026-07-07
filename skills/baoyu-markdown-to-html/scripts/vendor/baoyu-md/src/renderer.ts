@@ -67,12 +67,24 @@ function buildAddition(): string {
 
 function buildFootnoteArray(footnotes: [number, string, string][]): string {
   return footnotes
-    .map(([index, title, link]) =>
-      link === title
-        ? `<code style="font-size: 90%; opacity: 0.6;">[${index}]</code>: <i style="word-break: break-all">${title}</i><br/>`
-        : `<code style="font-size: 90%; opacity: 0.6;">[${index}]</code> ${title}: <i style="word-break: break-all">${link}</i><br/>`
-    )
+    .map(([index, title, link]) => {
+      const displayTitle = link === title ? getCitationDomain(link) : title;
+      const sourceDomain = getCitationDomain(link);
+      const domainLabel = sourceDomain && sourceDomain !== displayTitle
+        ? ` <span class="footnote-domain">${sourceDomain}</span>`
+        : "";
+      return `<span class="footnote-item"><code>[${index}]</code> ${displayTitle}${domainLabel}</span><br/>`;
+    })
     .join("\n");
+}
+
+function getCitationDomain(link: string): string {
+  try {
+    const url = new URL(link);
+    return url.hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 
 function transform(legend: string, text: string | null, title: string | null): string {
@@ -174,12 +186,23 @@ export function initRenderer(opts: IOpts = {}): RendererAPI {
     `;
   }
 
+  function buildWechatFollow(): string {
+    if (!opts.wechatFollow) {
+      return "";
+    }
+    return `
+      <section class="wechat-follow" style="margin: 28px 8px 18px; padding: 12px 14px; border-left: 3px solid #0F4C81; background: rgba(15, 76, 129, 0.04);">
+        <p style="margin: 0; color: #555; font-size: 14px; line-height: 1.9; letter-spacing: 0;">如果你关注 AI、Android、开发者工具和产品变化，欢迎关注。这里会持续筛选每天值得看的技术动态，整理成更适合开发者和产品人阅读的判断版。</p>
+      </section>
+    `;
+  }
+
   const buildFootnotes = () => {
     if (!footnotes.length) {
       return "";
     }
     return (
-      styledContent("h4", "引用链接")
+      styledContent("h4", "资料来源")
       + styledContent("footnotes", buildFootnoteArray(footnotes), "p")
     );
   };
@@ -358,6 +381,7 @@ export function initRenderer(opts: IOpts = {}): RendererAPI {
   return {
     buildAddition,
     buildFootnotes,
+    buildWechatFollow,
     setOptions,
     reset,
     parseFrontMatterAndContent,
@@ -422,6 +446,7 @@ export function postProcessHtml(
 ): string {
   let html = baseHtml;
   html = renderer.buildReadingTime(reading) + html;
+  html += renderer.buildWechatFollow();
   html += renderer.buildFootnotes();
   html += renderer.buildAddition();
   html += `

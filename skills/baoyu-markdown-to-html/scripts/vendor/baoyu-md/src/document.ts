@@ -33,6 +33,7 @@ export interface RenderMarkdownDocumentOptions {
   codeTheme?: string;
   countStatus?: boolean;
   citeStatus?: boolean;
+  wechatFollow?: boolean;
   defaultTitle?: string;
   fontFamily?: string;
   fontSize?: string;
@@ -112,6 +113,7 @@ export function resolveRenderOptions(
     codeTheme: options.codeTheme ?? extendConfig.default_code_theme ?? "github",
     countStatus: options.countStatus ?? extendConfig.count ?? false,
     citeStatus: options.citeStatus ?? extendConfig.cite ?? false,
+    wechatFollow: options.wechatFollow ?? false,
     defaultTitle: options.defaultTitle,
     fontFamily: options.fontFamily ?? resolveFontFamilyToken(extendConfig.default_font_family ?? undefined),
     fontSize: options.fontSize ?? extendConfig.default_font_size ?? undefined,
@@ -141,6 +143,7 @@ export async function renderMarkdownDocument(
   const renderer = initRenderer({
     citeStatus: resolvedOptions.citeStatus ?? false,
     countStatus: resolvedOptions.countStatus ?? false,
+    wechatFollow: resolvedOptions.wechatFollow ?? false,
     isMacCodeBlock: resolvedOptions.isMacCodeBlock ?? true,
     isShowLineNumber: resolvedOptions.isShowLineNumber ?? false,
     legend: resolvedOptions.legend ?? "alt",

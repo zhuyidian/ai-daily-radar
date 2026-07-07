@@ -24,6 +24,7 @@ export function printUsage(): void {
       `  --line-number         Show line numbers in code blocks`,
       `  --cite                Enable footnote citations`,
       `  --count               Show reading time / word count`,
+      `  --wechat-follow       Add fixed WeChat follow CTA before bottom citations`,
       `  --legend <value>      Image caption: title-alt, alt-title, title, alt, none`,
       `  --keep-title          Keep the first heading in output`,
     ].join("\n")
@@ -61,6 +62,7 @@ export function parseArgs(argv: string[]): CliOptions | null {
   let isShowLineNumber = ext.show_line_number ?? false;
   let citeStatus = ext.cite ?? false;
   let countStatus = ext.count ?? false;
+  let wechatFollow = false;
   let legend = ext.legend ?? "alt";
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -81,6 +83,7 @@ export function parseArgs(argv: string[]): CliOptions | null {
     if (arg === "--line-number") { isShowLineNumber = true; continue; }
     if (arg === "--cite") { citeStatus = true; continue; }
     if (arg === "--count") { countStatus = true; continue; }
+    if (arg === "--wechat-follow") { wechatFollow = true; continue; }
 
     if (arg === "--theme" || arg.startsWith("--theme=")) {
       const val = parseArgValue(argv, i, "--theme");
@@ -158,6 +161,6 @@ export function parseArgs(argv: string[]): CliOptions | null {
 
   return {
     inputPath, theme, keepTitle, primaryColor, fontFamily, fontSize,
-    codeTheme, isMacCodeBlock, isShowLineNumber, citeStatus, countStatus, legend,
+    codeTheme, isMacCodeBlock, isShowLineNumber, citeStatus, countStatus, wechatFollow, legend,
   };
 }

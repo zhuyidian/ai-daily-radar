@@ -303,9 +303,27 @@ li {
 /* ==================== 脚注 ==================== */
 /* footnotes 在 buildFootnotes() 中渲染为 <p> 标签 */
 p.footnotes {
-  margin: 0.5em 8px;
-  font-size: 80%;
-  color: hsl(var(--foreground));
+  margin: 0.6em 8px 0;
+  padding-top: 0.8em;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 78%;
+  line-height: 1.8;
+  color: #7a7a7a;
+  word-break: normal;
+}
+
+p.footnotes code {
+  color: #8a8a8a;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 92%;
+  opacity: 1;
+}
+
+p.footnotes .footnote-domain {
+  color: #a0a0a0;
+  font-size: 92%;
 }
 
 /* ==================== 图表 ==================== */

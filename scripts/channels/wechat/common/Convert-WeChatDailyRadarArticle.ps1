@@ -206,6 +206,7 @@ if (-not [string]::IsNullOrWhiteSpace($Color)) {
 if (-not $NoCite) {
     $args += "--cite"
 }
+$args += "--wechat-follow"
 if ($KeepTitle) {
     $args += "--keep-title"
 }

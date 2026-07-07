@@ -16,6 +16,7 @@ export interface IOpts {
   legend?: string;
   citeStatus?: boolean;
   countStatus?: boolean;
+  wechatFollow?: boolean;
   isMacCodeBlock?: boolean;
   isShowLineNumber?: boolean;
   themeMode?: "light" | "dark";
@@ -31,6 +32,7 @@ export interface RendererAPI {
     readingTime: ReadTimeResults;
   };
   buildReadingTime: (reading: ReadTimeResults) => string;
+  buildWechatFollow: () => string;
   buildFootnotes: () => string;
   buildAddition: () => string;
   createContainer: (html: string) => string;
@@ -54,6 +56,7 @@ export interface CliOptions {
   isShowLineNumber: boolean;
   citeStatus: boolean;
   countStatus: boolean;
+  wechatFollow: boolean;
   legend: string;
 }
 
