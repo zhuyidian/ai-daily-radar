@@ -12,6 +12,7 @@ $selection = $selectionJson | ConvertFrom-Json
 $outputDir = [string]$selection.OutputDir
 $workflowPromptPath = Join-Path $outputDir "editorial-workflow-prompt.md"
 $articleScript = Join-Path $PSScriptRoot "New-WeChatEditorialArticlePrompt.ps1"
+$humanizerScript = Join-Path $PSScriptRoot "New-WeChatHumanizerPrompt.ps1"
 $reviewScript = Join-Path $PSScriptRoot "New-WeChatEditorialReviewPrompt.ps1"
 $assetsScript = Join-Path $PSScriptRoot "New-WeChatEditorialAssetsPrompt.ps1"
 
@@ -40,12 +41,26 @@ When publish is true, run:
 
 Read the generated editorial-article-prompt.md, then write both title-candidates.json and wechat-article-draft.md exactly as requested.
 
+## Stage 2.5: Humanizer zh pass
+
+Run:
+
+~~~powershell
+& "$humanizerScript" -DraftPath "$outputDir\wechat-article-draft.md"
+~~~
+
+Read the generated humanizer-prompt.md. Write both humanizer-report.json and wechat-article-humanized.md exactly as requested.
+
+If humanizer-report.json has pass=false, stop and report the reason. Do not review or publish an unsafe humanized draft.
+
+The Humanizer pass may improve rhythm, transitions, headings, and human voice, but it must not add facts, remove source links, change numbers, change dates, or weaken uncertainty markers.
+
 ## Stage 3: independent editorial review
 
 Run:
 
 ~~~powershell
-& "$reviewScript" -DraftPath "$outputDir\wechat-article-draft.md"
+& "$reviewScript" -DraftPath "$outputDir\wechat-article-humanized.md"
 ~~~
 
 Read the generated editorial-review-prompt.md. Write editorial-review.json. Create the final wechat-article.md only if the score passes and there are no hard failures.

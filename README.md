@@ -69,6 +69,8 @@
 |   |   `-- SKILL.md
 |   |-- android-daily-developer-radar/
 |   |   `-- SKILL.md
+|   |-- humanizer-zh/
+|   |   `-- SKILL.md
 |   `-- wechat-editorial-writer/
 |       `-- SKILL.md
 `-- templates/
@@ -242,24 +244,28 @@ Android 日报对应：
 
 ```text
 读取 .runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\wechat-article-prompt.md，生成公众号版文章；
+再读取 humanizer-prompt.md，把初稿改成最终 wechat-article.md；
 再读取 wechat-assets-prompt.md，用 imagegen 生成封面和插图。
 ```
 
 `New-WeChatDailyRadarPrompt.ps1` 生成的公众号 prompt 默认会要求：
 
 - 不直接照搬日报标题，改成更自然、有判断的公众号标题。
-- 先基于 JSON/Markdown 写稿，再做一轮“去 AI 味编辑”。
+- 先基于 JSON/Markdown 写 `wechat-article-draft.md`，再通过 `humanizer-zh` 写出最终 `wechat-article.md`。
 - 关键事实在正文里保留普通 Markdown 来源链接，例如 `[TechCrunch 报道称](https://...)`，后续发布步骤会转换为微信底部引用。
 - 转换和草稿发布阶段会在正文结尾、资料来源之前自动插入固定关注引导，不需要在每篇文章里手写。
 - 1-2 条重点深写，低优先级信息压缩处理，避免每条新闻平均用力。
-- 减少模板腔、重复转折和高频抽象词，不编造事实、不新增来源。
+- `Humanizer-zh` 阶段减少模板腔、重复转折和高频抽象词，但不得新增事实、不得新增来源、不得删除来源链接、不得改日期和数字。
 - 图片默认采用克制的中文商业科技杂志/信息图风格，避开发光大脑、赛博城市、雷达屏幕等高频 AI 视觉。
 
 生成后的目录约定：
 
 ```text
 .runs\ai-daily-radar\YYYY-MM-DD\channels\wechat\daily-radar\
+|-- wechat-article-draft.md
 |-- wechat-article.md
+|-- humanizer-prompt.md
+|-- humanizer-report.json
 |-- wechat-article.html
 |-- wechat-draft-result.json
 `-- imgs\
@@ -312,6 +318,7 @@ Android 日报对应：
 -> 选出一个主题并设置发布门槛
 -> 读取最近历史选题，按主题分类做相似度降权和轮换
 -> 生成文章初稿和 10 个标题候选
+-> Humanizer-zh 做事实锁定后的“去 AI 味”编辑
 -> 独立核验事实、人话表达、篇幅与标题承诺
 -> 通过 80 分质量门槛后生成最终文章
 -> 规划非通用 AI 风格的封面和正文图
@@ -342,8 +349,11 @@ Android主题文章使用：
 .\scripts\channels\wechat\editorial\New-WeChatEditorialArticlePrompt.ps1 `
   -DecisionPath <editorial-decision.json>
 
-.\scripts\channels\wechat\editorial\New-WeChatEditorialReviewPrompt.ps1 `
+.\scripts\channels\wechat\editorial\New-WeChatHumanizerPrompt.ps1 `
   -DraftPath <wechat-article-draft.md>
+
+.\scripts\channels\wechat\editorial\New-WeChatEditorialReviewPrompt.ps1 `
+  -DraftPath <wechat-article-humanized.md>
 
 .\scripts\channels\wechat\editorial\New-WeChatEditorialAssetsPrompt.ps1 `
   -MarkdownPath <wechat-article.md>

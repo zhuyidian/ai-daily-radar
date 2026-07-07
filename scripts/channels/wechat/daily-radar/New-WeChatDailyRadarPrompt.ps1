@@ -34,6 +34,10 @@ $commonDir = $markdownFile.Directory.FullName
 $runDir = Get-RunDirFromMarkdown -MarkdownFile $markdownFile
 $projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..\..\..\..")).Path
 $wechatArticleWriterSkillPath = Join-Path $projectRoot "skills\wechat-article-writer\SKILL.md"
+$humanizerSkillPath = Join-Path $projectRoot "skills\humanizer-zh\SKILL.md"
+if (-not (Test-Path -LiteralPath $humanizerSkillPath)) {
+    throw "Humanizer skill does not exist: $humanizerSkillPath"
+}
 
 if ([string]::IsNullOrWhiteSpace($JsonPath)) {
     $JsonPath = [System.IO.Path]::ChangeExtension($markdownFile.FullName, ".json")
@@ -47,7 +51,10 @@ $imageDir = Join-Path $wechatDir "imgs"
 New-Item -ItemType Directory -Force -Path $wechatCommonDir, $wechatDir, $imageDir | Out-Null
 
 $articlePath = Join-Path $wechatDir "wechat-article.md"
+$draftPath = Join-Path $wechatDir "wechat-article-draft.md"
 $promptPath = Join-Path $wechatDir "wechat-article-prompt.md"
+$humanizerPromptPath = Join-Path $wechatDir "humanizer-prompt.md"
+$humanizerReportPath = Join-Path $wechatDir "humanizer-report.json"
 $assetsPromptPath = Join-Path $wechatDir "wechat-assets-prompt.md"
 $coverPath = Join-Path $imageDir "cover.png"
 $heroPath = Join-Path $imageDir "hero.png"
@@ -76,7 +83,7 @@ $wechatArticleWriterSkillPath
 Write a WeChat Official Account article in Chinese.
 
 Output file:
-- Markdown: $articlePath
+- Markdown draft: $draftPath
 
 Required frontmatter:
 ```yaml
@@ -89,6 +96,7 @@ cover: "imgs/cover.png"
 
 Writing requirements:
 - Use the daily JSON as the source of truth; use the Markdown for editorial context.
+- This step writes the first publishable draft. A separate Humanizer-zh pass will produce the final article, so preserve factual clarity over decorative polish.
 - Do not set author in frontmatter; the publishing step will use config/local.secrets.json wechat.accounts[].author.
 - Do not invent facts or new sources.
 - Rewrite the briefing into a publishable WeChat article, not a copied list.
@@ -107,11 +115,7 @@ Writing requirements:
   - Reduce abstract buzzwords such as "赋能", "生态", "闭环", "底层逻辑", "范式", "基础设施" unless they are truly necessary.
   - Do not use perfectly symmetric headings for every section.
   - Do not over-explain every paragraph with "为什么重要"; turn it into natural judgement.
-- After drafting, do one final "去 AI 味编辑" pass:
-  - Replace template-like section titles with more conversational but still professional headings.
-  - Remove repeated transition patterns.
-  - Keep facts unchanged and links intact.
-  - Make the article feel like it was selected and edited by a human.
+- Before finishing the draft, do a light cleanup for repeated transitions and obvious template-like headings. Do not do a heavy rewrite here; the Humanizer-zh stage will handle the final human voice pass.
 - Insert these local images in the article:
   - `![封面](imgs/cover.png)` near the top only if it is useful for preview.
   - `![今日主线](imgs/hero.png)` after the introduction.
@@ -132,12 +136,73 @@ After writing, ensure the Markdown renders cleanly and references only images un
 $imageDir
 "@
 
+$humanizerPrompt = @"
+# Humanize a Daily WeChat Article Draft
+
+Read the Humanizer skill completely:
+$humanizerSkillPath
+
+Read the original daily report:
+$resolvedMarkdownPath
+
+Read the machine-readable daily report:
+$resolvedJsonPath
+
+Read the WeChat article draft:
+$draftPath
+
+Rewrite the draft into the final daily WeChat article with a more natural human editorial voice.
+
+Final output file:
+- Markdown: $articlePath
+
+Write a valid JSON report to:
+$humanizerReportPath
+
+Hard boundaries:
+- Use the daily JSON as the source of truth.
+- Do not add new facts, new sources, examples, anecdotes, companies, products, benchmarks, dates, or numbers.
+- Do not remove or change ordinary Markdown source links.
+- Do not change dates, numbers, company names, product names, model names, paper titles, or quoted technical terms.
+- Do not turn reported claims into verified facts.
+- Preserve source-qualification wording already present in the draft, including phrases equivalent to "reported", "the paper says", "if verified", and "still needs verification".
+- Preserve frontmatter, including title, description, and cover path, unless the title is clearly broken.
+- Preserve local image references under imgs/.
+- Do not send to Feishu.
+- Do not create or publish a WeChat draft in this step.
+
+Improve:
+- opening tension and reader problem;
+- sentence rhythm and paragraph variation;
+- natural transitions;
+- concrete verbs and nouns;
+- editor-like judgement about which daily signals matter most;
+- less template-like section naming;
+- a concise ending that gives a useful follow-up watch point instead of summarizing the whole article again.
+
+Report schema:
+~~~json
+{
+  "pass": true,
+  "facts_preserved": true,
+  "links_preserved": true,
+  "numbers_preserved": true,
+  "thesis_preserved": true,
+  "changes": [],
+  "risk_notes": [],
+  "protected_terms_checked": []
+}
+~~~
+
+Set pass=false if you cannot safely preserve facts, links, numbers, or source qualifications. If pass=false, do not write the final article.
+"@
+
 $assetsPrompt = @"
 # Generate WeChat Article Images
 
 Use imagegen to create project-bound bitmap assets for the WeChat article.
 
-Article Markdown:
+Final article Markdown:
 $articlePath
 
 Output directory:
@@ -173,6 +238,7 @@ After generation, keep final selected image files in the output directory above.
 "@
 
 $articlePrompt | Set-Content -LiteralPath $promptPath -Encoding UTF8
+$humanizerPrompt | Set-Content -LiteralPath $humanizerPromptPath -Encoding UTF8
 $assetsPrompt | Set-Content -LiteralPath $assetsPromptPath -Encoding UTF8
 
 [PSCustomObject]@{
@@ -181,13 +247,17 @@ $assetsPrompt | Set-Content -LiteralPath $assetsPromptPath -Encoding UTF8
     RunDir = $runDir
     CommonDir = $commonDir
     WeChatDir = $wechatDir
+    DraftPath = $draftPath
     ArticlePath = $articlePath
     ArticlePromptPath = $promptPath
+    HumanizerSkillPath = $humanizerSkillPath
+    HumanizerPromptPath = $humanizerPromptPath
+    HumanizerReportPath = $humanizerReportPath
     AssetsPromptPath = $assetsPromptPath
     ImageDir = $imageDir
     CoverPath = $coverPath
     HeroPath = $heroPath
     ItemImagePath = $itemImagePath
-    NextStep = "Ask Codex: Read wechat-article-prompt.md, generate wechat-article.md, then use imagegen with wechat-assets-prompt.md to create cover and article images."
+    NextStep = "Ask Codex: Read wechat-article-prompt.md and generate wechat-article-draft.md; then read humanizer-prompt.md and generate wechat-article.md plus humanizer-report.json; then use imagegen with wechat-assets-prompt.md to create cover and article images."
 } | ConvertTo-Json -Depth 6
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### 新增
+
+- 新增项目内置 `humanizer-zh` Skill，基于 `op7418/Humanizer-zh` 思路做公众号工作流适配。
+- 新增 `New-WeChatHumanizerPrompt.ps1`，在主题文章初稿和独立审稿之间加入“事实锁定后的去 AI 味编辑”阶段。
+- 每日公众号链路 `New-WeChatDailyRadarPrompt.ps1` 接入 `humanizer-zh`，产出 `wechat-article-draft.md` 后再生成最终 `wechat-article.md`。
+
+### 调整
+
+- 公众号主题文章完整工作流调整为：选题 -> 初稿 -> Humanizer-zh -> 独立审稿 -> 视觉资产。
+- 独立审稿默认审阅 `wechat-article-humanized.md`，避免 Humanizer 修改后绕过事实与质量门槛。
+- 每日公众号链路调整为：日报 -> 公众号初稿 -> Humanizer-zh -> 最终文章 -> 视觉资产，后续排版和草稿发布命令保持不变。
+
 ## V1.3.0 - 2026-06-21
 
 ### 新增
