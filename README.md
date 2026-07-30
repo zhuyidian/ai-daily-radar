@@ -111,7 +111,11 @@ Copy-Item .\config\local.secrets.example.json .\config\local.secrets.json
   "feishu": {
     "app_id": "cli_xxx",
     "app_secret": "xxx",
-    "chat_id": "oc_xxx",
+    "chat_id": "",
+    "chat_ids": [
+      "oc_xxx",
+      "oc_yyy"
+    ],
     "folder_token": "fld_xxx",
     "open_api_base": "https://open.feishu.cn"
   },
@@ -135,6 +139,8 @@ Copy-Item .\config\local.secrets.example.json .\config\local.secrets.json
   }
 }
 ```
+
+飞书支持向多个群广播同一份日报。`feishu.chat_id` 与 `feishu.chat_ids` 会合并并去重；`chat_id` 留空时不会作为发送目标。已有的单群 `chat_id` 配置继续可用，`chat_ids` 可用于追加更多群。文档模式只导入一次飞书文档，再向每个目标群发送同一个摘要和文档链接。
 
 `config/local.secrets.json` 已加入 `.gitignore`，不要提交真实密钥。
 

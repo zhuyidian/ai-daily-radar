@@ -83,6 +83,45 @@ function Get-RequiredConfigValue {
     return $value
 }
 
+function Get-FeishuChatIds {
+    param([object]$Config)
+
+    $sectionValue = $Config.feishu
+    if ($null -eq $sectionValue) {
+        throw "Config is missing 'feishu' section."
+    }
+
+    $chatIds = New-Object System.Collections.Generic.List[string]
+    $legacyChatId = ([string]$sectionValue.chat_id).Trim()
+    if (-not [string]::IsNullOrWhiteSpace($legacyChatId)) {
+        $chatIds.Add($legacyChatId)
+    }
+
+    $chatIdsProperty = $sectionValue.PSObject.Properties["chat_ids"]
+    if ($null -ne $chatIdsProperty) {
+        $configuredChatIds = @($sectionValue.chat_ids)
+        if ($configuredChatIds.Count -eq 0) {
+            throw "Config feishu.chat_ids must contain at least one chat ID."
+        }
+
+        foreach ($configuredChatId in $configuredChatIds) {
+            $chatId = ([string]$configuredChatId).Trim()
+            if ([string]::IsNullOrWhiteSpace($chatId)) {
+                throw "Config feishu.chat_ids cannot contain an empty chat ID."
+            }
+            if (-not $chatIds.Contains($chatId)) {
+                $chatIds.Add($chatId)
+            }
+        }
+    }
+
+    if ($chatIds.Count -eq 0) {
+        throw "Config is missing required value: feishu.chat_id or feishu.chat_ids"
+    }
+
+    return $chatIds.ToArray()
+}
+
 function Test-PlaceholderConfigValue {
     param(
         [string]$Value,
@@ -172,6 +211,36 @@ function Send-FeishuText {
         -Headers $headers `
         -Body $body `
         -Stage "Send Feishu text message" | Out-Null
+}
+
+function Send-FeishuTextToChats {
+    param(
+        [string]$BaseUrl,
+        [string]$Token,
+        [string[]]$ChatIds,
+        [string]$Text
+    )
+
+    $deliveries = New-Object System.Collections.Generic.List[object]
+    foreach ($chatId in $ChatIds) {
+        try {
+            Send-FeishuText -BaseUrl $BaseUrl -Token $Token -ChatId $chatId -Text $Text
+            $deliveries.Add([PSCustomObject]@{
+                ChatId = $chatId
+                Sent = $true
+                Error = $null
+            })
+        }
+        catch {
+            $deliveries.Add([PSCustomObject]@{
+                ChatId = $chatId
+                Sent = $false
+                Error = $_.Exception.Message
+            })
+        }
+    }
+
+    return $deliveries.ToArray()
 }
 
 function New-FeishuAccessToken {
@@ -392,6 +461,7 @@ if ([string]::IsNullOrWhiteSpace($baseUrl)) {
 }
 $baseUrl = $baseUrl.TrimEnd("/")
 
+$chatIds = @(Get-FeishuChatIds -Config $localSecrets)
 $summary = Get-MarkdownSummary -Content $content
 
 if ($DryRun) {
@@ -401,6 +471,8 @@ if ($DryRun) {
         MarkdownPath = $resolvedMarkdownPath.ToString()
         SummaryPreview = $summary
         WouldSend = $true
+        TargetChatIds = $chatIds
+        TargetCount = $chatIds.Count
         BaseUrl = $baseUrl
         GeneratedAt = ([DateTimeOffset]::Now).UtcDateTime.ToString("o")
     }
@@ -411,7 +483,6 @@ if ($DryRun) {
 
 $appId = Get-RequiredConfigValue -Config $localSecrets -Section "feishu" -Name "app_id"
 $appSecret = Get-RequiredConfigValue -Config $localSecrets -Section "feishu" -Name "app_secret"
-$chatId = Get-RequiredConfigValue -Config $localSecrets -Section "feishu" -Name "chat_id"
 $folderToken = [string]$localSecrets.feishu.folder_token
 if ([string]::IsNullOrWhiteSpace($folderToken)) {
     $folderToken = ""
@@ -423,16 +494,24 @@ if ((-not $TextOnly) -and (Test-PlaceholderConfigValue -Value $folderToken -Plac
 $token = New-FeishuAccessToken -BaseUrl $baseUrl -AppId $appId -AppSecret $appSecret
 
 if ($TextOnly) {
-    Send-FeishuText -BaseUrl $baseUrl -Token $token -ChatId $chatId -Text $summary
+    $deliveries = @(Send-FeishuTextToChats -BaseUrl $baseUrl -Token $token -ChatIds $chatIds -Text $summary)
+    $failedDeliveries = @($deliveries | Where-Object { -not $_.Sent })
     $textResult = [PSCustomObject]@{
         Mode = "text"
         Title = $Title
         MarkdownPath = $resolvedMarkdownPath.ToString()
-        Sent = $true
+        ChatIds = $chatIds
+        Deliveries = $deliveries
+        Sent = ($failedDeliveries.Count -eq 0)
+        SentCount = @($deliveries | Where-Object { $_.Sent }).Count
+        FailedCount = $failedDeliveries.Count
         SentAt = ([DateTimeOffset]::Now).UtcDateTime.ToString("o")
     }
     Write-RunResultJson -OutputPath $sendResultPath -Data $textResult
     $textResult | ConvertTo-Json -Depth 4
+    if ($failedDeliveries.Count -gt 0) {
+        throw "Failed to send the Feishu text summary to $($failedDeliveries.Count) of $($chatIds.Count) target chats. See $sendResultPath for delivery details."
+    }
     return
 }
 
@@ -458,7 +537,8 @@ $message = @(
     $doc.Url
 ) -join [Environment]::NewLine
 
-Send-FeishuText -BaseUrl $baseUrl -Token $token -ChatId $chatId -Text $message
+$deliveries = @(Send-FeishuTextToChats -BaseUrl $baseUrl -Token $token -ChatIds $chatIds -Text $message)
+$failedDeliveries = @($deliveries | Where-Object { -not $_.Sent })
 
 $sendResult = [PSCustomObject]@{
     Mode = "docx"
@@ -466,8 +546,15 @@ $sendResult = [PSCustomObject]@{
     MarkdownPath = $resolvedMarkdownPath.ToString()
     Url = $doc.Url
     Token = $doc.Token
-    Sent = $true
+    ChatIds = $chatIds
+    Deliveries = $deliveries
+    Sent = ($failedDeliveries.Count -eq 0)
+    SentCount = @($deliveries | Where-Object { $_.Sent }).Count
+    FailedCount = $failedDeliveries.Count
     SentAt = ([DateTimeOffset]::Now).UtcDateTime.ToString("o")
 }
 Write-RunResultJson -OutputPath $sendResultPath -Data $sendResult
 $sendResult | ConvertTo-Json -Depth 4
+if ($failedDeliveries.Count -gt 0) {
+    throw "Failed to send the Feishu document message to $($failedDeliveries.Count) of $($chatIds.Count) target chats. See $sendResultPath for delivery details."
+}
